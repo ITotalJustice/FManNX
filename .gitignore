@@ -1,0 +1,7 @@
+.vscode/**
+build/**
+*.zip
+*.nro
+*.nacp
+*.elf
+*.jpg
