@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <string.h>
 #include <switch.h>
@@ -58,9 +59,17 @@ node* createNode(int number_of_files, char *folder_location)
     
     if (dir)
     {
-        files = malloc(number_of_files * sizeof(*files));
+        files = malloc(number_of_files * sizeof(*files) + sizeof(*files));
 
-        for (int i = 0; (de = readdir(dir)); i++)
+        int n = 0;
+        char buffer[512];
+        if (strcmp(getcwd(buffer, sizeof(buffer)), ROOT))
+        {
+            strcpy(files[n].file_name, "..");
+            n++;
+        }
+
+        for (int i = n; (de = readdir(dir)); i++)
         {
             strcpy(files[i].file_name, de->d_name);
         }

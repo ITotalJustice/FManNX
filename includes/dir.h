@@ -1,10 +1,12 @@
 #ifndef _DIR_H_
 #define _DIR_H_
 
+#define ROOT "sdmc:/"
+
 typedef struct node
 {
     char file_name[256];
-    int position;
+    int position;           // not used yet...
 } node;
 
 int isDir(char *folder_to_check);                                   // check if given path is a folder.

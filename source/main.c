@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <switch.h>
+#include <string.h>
 
 #include "dir.h"
-
-#define ROOT "/"
 
 
 void appInit()
@@ -54,23 +53,38 @@ int main(int argc, char **argv)
 
         if (kDown & KEY_A)
         {
-            char *folder_location = files[cursor].file_name;
+            // look at this mess...
+            // basically concatenate 2 strings, with a '/' in the middle. Extremely messy.
+            char buffer[512];
+            char full_path[512];
+            snprintf(full_path, sizeof(full_path), "%s/%s", getcwd(buffer, sizeof(buffer)), files[cursor].file_name);
 
-            if(!isDir(folder_location))
+            // if this is a directory, the code inside executes.
+            if(!isDir(full_path))
             {
+                chdir(full_path);
                 cursor = 0;
-                number_of_files = scanDir(folder_location);
+                number_of_files = scanDir(full_path);
 
+                // hacky way to show ".." even in an empty directory
+                if (number_of_files == 0) number_of_files++;
+
+                // freeeeeeeee...
                 freeNode(files);
+                //always set to NULL after free.
                 files = NULL;
-                files = createNode(number_of_files, folder_location);
+                // create new node with the size of number_of_files.
+                files = createNode(number_of_files, full_path);
 
+                // print out the new list of files.
                 printDir(number_of_files, cursor, files);
             }
         }
 
+        // jump back to root dir.
         if (kDown & KEY_B)
         {
+            chdir(ROOT);
             cursor = 0;
             number_of_files = scanDir(ROOT);
 
@@ -85,7 +99,6 @@ int main(int argc, char **argv)
     }
     
     // clean then exit...
-
     freeNode(files);
     appExit();
     return 0;
