@@ -63,7 +63,8 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lnx
+LIBS	:=  -lSDL2_ttf -lSDL2_image -lwebp -lpng -lturbojpeg -lSDL2 -lSDL2_gfx `sdl2-config --libs` `freetype-config --libs` \
+			-lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -97,7 +98,7 @@ BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(CPPFILES)),)
 #---------------------------------------------------------------------------------
-	export LD	:=	$(CC)
+	export LD	:=	$(CXX)
 #---------------------------------------------------------------------------------
 else
 #---------------------------------------------------------------------------------

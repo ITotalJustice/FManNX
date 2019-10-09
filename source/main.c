@@ -1,34 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <switch.h>
 #include <string.h>
+#include <unistd.h>
+
+#include <switch.h>
 
 #include "dir.h"
+#include "sdl.h"
+#include "util.h"
 
+//#define DEBUG
 
-void appInit()
+void app_init()
 {
-    consoleInit(NULL);
+    #ifdef DEBUG
+    socketInitializeDefault();
+    nxlinkStdio();
+    #endif
+
+    plInitialize();
+    romfsInit();
+    sdlInit();
+    romfsExit();
 }
 
-void appExit()
+void app_exit()
 {
-    consoleExit(NULL);
+    #ifdef DEBUG
+    socketExit();
+    #endif
+    plExit();
+    sdlExit();
 }
 
 int main(int argc, char **argv)
 {
     // init stuff
-    appInit();
+    app_init();
     chdir(ROOT);
 
-    int number_of_files = scanDir(ROOT);
     int cursor = 0;
+    int list_move = 0;
+    int number_of_files = scan_dir(ROOT);
     
-    struct node *files = createNode(number_of_files, ROOT);
+    create_node(number_of_files, ROOT);
 
-    printDir(number_of_files, cursor, files);
+    // draw menu and print directory
+    draw_menu(ROOT);
+    print_dir(number_of_files, list_move, cursor, files);
 
     while (appletMainLoop())
     {
@@ -38,68 +57,55 @@ int main(int argc, char **argv)
         // scroll up...
         if (kDown & KEY_UP)
         {
-            if (cursor == 0) cursor = number_of_files - 1;
-            else cursor--;
-            printDir(number_of_files, cursor, files);
+            cursor = move_cursor_up(cursor, number_of_files -1);
+            if (cursor == list_move-1) list_move--;
+            else if (cursor == number_of_files-1) list_move = cursor - (LIST_MAX - 1);
+
+            draw_menu("temp");
+            print_dir(number_of_files, list_move, cursor, files);
         }
 
         // scroll down...
         if (kDown & KEY_DOWN)
         {
-            if (cursor == number_of_files - 1) cursor = 0;
-            else cursor++;
-            printDir(number_of_files, cursor, files);
+            cursor = move_cursor_down(cursor, number_of_files -1);
+            if (cursor == (LIST_MAX - 1) + list_move + 1) list_move++;
+            else if (cursor == 0) list_move = 0;
+
+            draw_menu("temp");
+            print_dir(number_of_files, list_move, cursor, files);
         }
 
         if (kDown & KEY_A)
         {
-            // look at this mess...
-            // basically concatenate 2 strings, with a '/' in the middle. Extremely messy.
-            char buffer[512];
-            char full_path[512];
-            snprintf(full_path, sizeof(full_path), "%s/%s", getcwd(buffer, sizeof(buffer)), files[cursor].file_name);
-
-            // if this is a directory, the code inside executes.
-            if(!isDir(full_path))
+            if (!file_stuff(&cursor, &number_of_files))
             {
-                chdir(full_path);
-                cursor = 0;
-                number_of_files = scanDir(full_path);
-
-                // hacky way to show ".." even in an empty directory
-                if (number_of_files == 0) number_of_files++;
-
-                // freeeeeeeee...
-                freeNode(files);
-                //always set to NULL after free.
-                files = NULL;
-                // create new node with the size of number_of_files.
-                files = createNode(number_of_files, full_path);
-
-                // print out the new list of files.
-                printDir(number_of_files, cursor, files);
+                list_move = 0;
+                draw_menu("temp");
+                print_dir(number_of_files, list_move, cursor, files);
             }
         }
 
         // jump back to root dir.
         if (kDown & KEY_B)
         {
-            chdir(ROOT);
-            cursor = 0;
-            number_of_files = scanDir(ROOT);
-
-            freeNode(files);
-            files = NULL;
-            files = createNode(number_of_files, ROOT);
-
-            printDir(number_of_files, cursor, files);
+            if (!strcmp(files[0].file_name, ".."))
+            {
+                cursor = 0;
+                if (!file_stuff(&cursor, &number_of_files))
+                {
+                    list_move = 0;
+                    draw_menu("temp");
+                    print_dir(number_of_files, list_move, cursor, files);
+                }
+            }
         }
 
         if (kDown & KEY_PLUS) break;
     }
     
     // clean then exit...
-    freeNode(files);
-    appExit();
+    free_node(files);
+    app_exit();
     return 0;
 }
