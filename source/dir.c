@@ -6,6 +6,7 @@
 #include <switch.h>
 
 #include "dir.h"
+#include "util.h"
 #include "sdl.h"
 
 
@@ -15,10 +16,10 @@ int is_dir(char *folder_to_check)
     if (dir)
     {
         closedir(dir);
-        return 0;
+        return YES;
     }
     
-    return 1;  
+    return NO;  
 }
 
 int scan_dir(char *directory)
@@ -45,29 +46,43 @@ int scan_dir(char *directory)
 void print_dir(int number_of_files, int list_move, int cursor, node *files)
 {
     int x = 150;
+    int shape_x = 100;
 
     for (int i = 0, j = list_move, nl = 100; i < number_of_files && i < LIST_MAX; i++, j++, nl += 60)
     {
+        if (files[j].dir == YES)
+            SDL_DrawShape(purple, shape_x, nl, 20, 20);
+
+        else if (!strcmp(files[j].ext, PAYLOAD))
+            SDL_DrawShape(brown, shape_x, nl, 20, 20);
+
+        else if (!strcmp(files[j].ext, TXT_FILE))
+            SDL_DrawShape(green, shape_x, nl, 20, 20);
+
+        else if (!strcmp(files[j].ext, INI_FILE))
+            SDL_DrawShape(orange, shape_x, nl, 20, 20);
+
+        else if (!strcmp(files[j].ext, NRO_FILE))
+            SDL_DrawShape(yellow, shape_x, nl, 20, 20);
+
+        else if (!strcmp(files[j].ext, NSP_FILE))
+            SDL_DrawShape(pink, shape_x, nl, 20, 20);
+
+        else if (!strcmp(files[j].ext, XCI_FILE))
+            SDL_DrawShape(red, shape_x, nl, 20, 20);
+        
+        else if (!strcmp(files[j].ext, MP3_FILE))
+            SDL_DrawShape(indigo, shape_x, nl, 20, 20);
+
+        else SDL_DrawShape(white, shape_x, nl, 20, 20);  
+        
         if (j == cursor)
             SDL_DrawText(fntSmall, x, nl, grey, "> %s", files[j].file_name);
         else
             SDL_DrawText(fntSmall, x, nl, white, "%s", files[j].file_name);
+
+        printf("%s, %s\n", files[j].file_name, files[j].ext);
     }
-    SDL_UpdateRenderer();
-}
-
-void draw_menu(char *pwd)
-{
-    SDL_ClearRenderer();
-
-    SDL_DrawShape(dark_grey, 25, 20, 50, 5);
-    SDL_DrawShape(dark_grey, 25, 30, 50, 5);
-    SDL_DrawShape(dark_grey, 25, 40, 50, 5);
-
-    char buffer[256];
-    getcwd(buffer, sizeof(buffer));
-
-    SDL_DrawText(fntMedium, 200, 25, white, "Dir: %s", buffer);
 }
 
 void create_node(int number_of_files, char *folder_location)
@@ -84,12 +99,22 @@ void create_node(int number_of_files, char *folder_location)
         if (strcmp(getcwd(buffer, sizeof(buffer)), ROOT))
         {
             strcpy(files[n].file_name, "..");
+            strcpy(files[n].ext, "..");
             n++;
         }
 
-        for (int i = n; (de = readdir(dir)); i++)
+        // store all the information of each file in the directory.
+        for ( ; (de = readdir(dir)); n++)
         {
-            strcpy(files[i].file_name, de->d_name);
+            strcpy(files[n].file_name, de->d_name);
+
+            if (is_dir(de->d_name)) files[n].dir = YES;
+
+            else
+            {
+                files[n].dir = NO;
+                strcpy(files[n].ext, get_filename_ext(de->d_name));
+            }
         }
         closedir(dir);
     }
@@ -112,7 +137,7 @@ int file_stuff(int *cursor, int *number_of_files)
     snprintf(full_path, sizeof(full_path), "%s/%s", getcwd(buffer, sizeof(buffer)), files[*cursor].file_name);
 
     // if this is a directory, the code inside executes.
-    if (!is_dir(full_path))
+    if (is_dir(full_path))
     {
         chdir(full_path);
         *cursor = 0;
