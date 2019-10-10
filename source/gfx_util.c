@@ -64,8 +64,22 @@ void draw_menu(char *pwd)
     SDL_DrawShape(dark_grey, 25, 30, 50, 5);
     SDL_DrawShape(dark_grey, 25, 40, 50, 5);
 
-    char buffer[256];
-    getcwd(buffer, sizeof(buffer));
+    /*char buffer[256];
+    getcwd(buffer, sizeof(buffer));*/
 
-    SDL_DrawText(fntMedium, 200, 25, white, "Dir: %s", buffer);
+    SDL_DrawText(fntMedium, 200, 25, white, "Dir: %s", pwd);
+}
+
+void draw_file_options(int cursor)
+{
+    char *options[] = { "edit", "cut", "copy", "move", "delete", "rename" };
+    SDL_DrawShape(dark_grey, 350, 100, 250, 350);
+
+    for (u_int16_t i = 0, nl = 120; i < 6; i++, nl += 55)
+    {
+        if (cursor == i)
+            SDL_DrawText(fntSmall, 375, nl, grey, options[i]);
+        else
+            SDL_DrawText(fntSmall, 375, nl, white, options[i]);
+    }
 }

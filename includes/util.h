@@ -13,8 +13,8 @@
 
 #define MP3_FILE    "mp3"
 #define OGG_FILE    "ogg"
-#define FLAC_FILE   "flac"
 #define WAV_FILE    "wav"
+#define FLAC_FILE   "flac"
 
 
 int move_cursor_up(int cursor, int cursor_max);

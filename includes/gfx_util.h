@@ -7,5 +7,6 @@ int yes_no_box(int x, int y, const char *question);
 void error_box(int x, int y, const char *error_text);
 
 void draw_menu(char *pwd);
+void draw_file_options(int cursor);
 
 #endif

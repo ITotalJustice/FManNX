@@ -43,6 +43,71 @@ int scan_dir(char *directory)
     return files_found;
 }
 
+void draw_file_icon(char *file, int x, int y, int w, int h)
+{
+    if (!strcmp(file, PAYLOAD))
+    {
+        folder_info->total_payloads++;
+        SDL_DrawShape(brown, x, y, w, h);
+    }
+
+    else if (!strcmp(file, TXT_FILE))
+    {
+        folder_info->total_txt++;
+        SDL_DrawShape(green, x, y, w, h);
+    }
+
+    else if (!strcmp(file, INI_FILE))
+    {
+        folder_info->total_ini++;
+        SDL_DrawShape(orange, x, y, w, h);
+    }
+
+    else if (!strcmp(file, NRO_FILE))
+    {
+        folder_info->total_nro++;
+        SDL_DrawShape(yellow, x, y, w, h);
+    }
+
+    else if (!strcmp(file, NSP_FILE))
+    {
+        folder_info->total_nsp++;
+        SDL_DrawShape(pink, x, y, w, h);
+    }
+
+    else if (!strcmp(file, XCI_FILE))
+    {
+        folder_info->total_xci++;
+        SDL_DrawShape(red, x, y, w, h);
+    }
+
+    else if (!strcmp(file, MP3_FILE))
+    {
+        folder_info->total_mp3++;
+        SDL_DrawShape(indigo, x, y, w, h);
+    }
+
+    else if (!strcmp(file, OGG_FILE))
+    {
+        folder_info->total_ogg++;
+        SDL_DrawShape(indigo, x, y, w, h);
+    }
+
+    else if (!strcmp(file, WAV_FILE))
+    {
+        folder_info->total_wav++;
+        SDL_DrawShape(indigo, x, y, w, h);
+    }
+
+    else if (!strcmp(file, FLAC_FILE))
+    {
+        folder_info->total_flac++;
+        SDL_DrawShape(indigo, x, y, w, h);
+    }
+
+    else SDL_DrawShape(white, x, y, w, h); 
+}
+
 void print_dir(int number_of_files, int list_move, int cursor, node *files)
 {
     int x = 150;
@@ -51,37 +116,17 @@ void print_dir(int number_of_files, int list_move, int cursor, node *files)
     for (int i = 0, j = list_move, nl = 100; i < number_of_files && i < LIST_MAX; i++, j++, nl += 60)
     {
         if (files[j].dir == YES)
+        {
             SDL_DrawShape(purple, shape_x, nl, 20, 20);
+            folder_info->total_folders++;
+        }
 
-        else if (!strcmp(files[j].ext, PAYLOAD))
-            SDL_DrawShape(brown, shape_x, nl, 20, 20);
-
-        else if (!strcmp(files[j].ext, TXT_FILE))
-            SDL_DrawShape(green, shape_x, nl, 20, 20);
-
-        else if (!strcmp(files[j].ext, INI_FILE))
-            SDL_DrawShape(orange, shape_x, nl, 20, 20);
-
-        else if (!strcmp(files[j].ext, NRO_FILE))
-            SDL_DrawShape(yellow, shape_x, nl, 20, 20);
-
-        else if (!strcmp(files[j].ext, NSP_FILE))
-            SDL_DrawShape(pink, shape_x, nl, 20, 20);
-
-        else if (!strcmp(files[j].ext, XCI_FILE))
-            SDL_DrawShape(red, shape_x, nl, 20, 20);
-        
-        else if (!strcmp(files[j].ext, MP3_FILE))
-            SDL_DrawShape(indigo, shape_x, nl, 20, 20);
-
-        else SDL_DrawShape(white, shape_x, nl, 20, 20);  
+        else draw_file_icon(files[j].ext, shape_x, nl, 20, 20);
         
         if (j == cursor)
             SDL_DrawText(fntSmall, x, nl, grey, "> %s", files[j].file_name);
         else
             SDL_DrawText(fntSmall, x, nl, white, "%s", files[j].file_name);
-
-        printf("%s, %s\n", files[j].file_name, files[j].ext);
     }
 }
 
@@ -92,14 +137,17 @@ void create_node(int number_of_files, char *folder_location)
     
     if (dir)
     {
-        files = malloc(number_of_files * sizeof(*files) + sizeof(*files));
+        files = malloc(number_of_files * (sizeof(*files) + sizeof(*files)));
+        folder_info = malloc(sizeof(*folder_location));
+
+        folder_info->total = number_of_files;
 
         int n = 0;
         char buffer[256];
         if (strcmp(getcwd(buffer, sizeof(buffer)), ROOT))
         {
             strcpy(files[n].file_name, "..");
-            strcpy(files[n].ext, "..");
+            files[n].dir = 1;
             n++;
         }
 
@@ -120,15 +168,7 @@ void create_node(int number_of_files, char *folder_location)
     }
 }
 
-void free_node(node *head)
-{
-    // check if head is already NULL.
-    if (head == NULL) return;
-
-	free(head);
-}
-
-int file_stuff(int *cursor, int *number_of_files)
+void file_stuff(int *cursor, int *number_of_files)
 {
     // look at this mess...
     // basically concatenate 2 strings, with a '/' in the middle. Extremely messy.
@@ -136,23 +176,16 @@ int file_stuff(int *cursor, int *number_of_files)
     char full_path[256 + sizeof(buffer)];
     snprintf(full_path, sizeof(full_path), "%s/%s", getcwd(buffer, sizeof(buffer)), files[*cursor].file_name);
 
-    // if this is a directory, the code inside executes.
-    if (is_dir(full_path))
-    {
-        chdir(full_path);
-        *cursor = 0;
-        *number_of_files = scan_dir(full_path);
+    chdir(full_path);
+    *cursor = 0;
+    *number_of_files = scan_dir(full_path);
 
-        // freeeeeeeee...
-        free_node(files);
-        //always set to NULL after free.
-        files = NULL;
-        // create new node with the size of number_of_files.
-        create_node(*number_of_files, full_path);
-
-        return 0;
-    }
-
-    // if selected file was not a dir.
-    return 1;
+    // freeeeeeeee...
+    free(files);
+    free(folder_info);
+    //always set to NULL after free.
+    files = NULL;
+    folder_info = NULL;
+    // create new node with the size of number_of_files.
+    create_node(*number_of_files, full_path);
 }

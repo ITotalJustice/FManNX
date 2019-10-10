@@ -8,9 +8,12 @@
 #include "dir.h"
 #include "sdl.h"
 #include "util.h"
+#include "sdl_music.h"
 #include "gfx_util.h"
+#include "reboot_payload.h"
 
 //#define DEBUG
+
 #define DIR_BROWSER     0
 #define FILE_OPTION     1
 #define MUSIC_PLAYER    2
@@ -24,8 +27,10 @@ void app_init()
     #endif
 
     plInitialize();
+    splInitialize();
     romfsInit();
     sdlInit();
+    sdl_music_init();
     romfsExit();
 }
 
@@ -35,6 +40,8 @@ void app_exit()
     socketExit();
     #endif
     plExit();
+    splExit();
+    sdl_music_exit();
     sdlExit();
 }
 
@@ -62,24 +69,23 @@ int main(int argc, char **argv)
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
         hidScanInput();
 
+        draw_menu("temp");
+        print_dir(number_of_files, list_move, cursor, files);
+
+        if (option == FILE_OPTION) draw_file_options(file_option_cursor);
+
         // scroll up...
         if (kDown & KEY_UP)
         {
             switch (option)
             {
                 case DIR_BROWSER:
-                    cursor = move_cursor_up(cursor, number_of_files -1);
+                    cursor = move_cursor_up(cursor, number_of_files);
                     list_move = list_move_up(list_move, cursor, number_of_files, LIST_MAX);
-
-                    draw_menu("temp");
-                    print_dir(number_of_files, list_move, cursor, files);
                     break;
 
                 case FILE_OPTION:
-                    file_option_cursor = move_cursor_up(file_option_cursor, number_of_files -1);
-
-                    draw_menu("temp");
-                    print_dir(number_of_files, list_move, cursor, files);
+                    file_option_cursor = move_cursor_up(file_option_cursor, 6);
                 break;
             }
         }
@@ -87,55 +93,117 @@ int main(int argc, char **argv)
         // scroll down...
         if (kDown & KEY_DOWN)
         {
-            cursor = move_cursor_down(cursor, number_of_files -1);
-            list_move = list_move_down(list_move, cursor, LIST_MAX);
+            switch (option)
+            {
+                case DIR_BROWSER:
+                    cursor = move_cursor_down(cursor, number_of_files);
+                    list_move = list_move_down(list_move, cursor, LIST_MAX);
+                    break;
 
-            draw_menu("temp");
-            print_dir(number_of_files, list_move, cursor, files);
+                case FILE_OPTION:
+                    file_option_cursor = move_cursor_down(file_option_cursor, 6);
+                break;
+            }
         }
 
         if (kDown & KEY_A)
         {
-            if (!file_stuff(&cursor, &number_of_files))
+            if (option == DIR_BROWSER)
             {
-                list_move = 0;
-                draw_menu("temp");
-                print_dir(number_of_files, list_move, cursor, files);
+                if (files[cursor].dir == YES)
+                {
+                    file_stuff(&cursor, &number_of_files);
+                    list_move = 0;
+                }
+
+                else if (!strcmp(files[cursor].ext, PAYLOAD))
+                    reboot_payload(files[cursor].file_name);
+
+                //else if (!strcmp(files[cursor].ext, TXT_FILE))
+
+                //else if (!strcmp(files[cursor].ext, INI_FILE))
+
+                //else if (!strcmp(files[cursor].ext, NRO_FILE))
+
+                //else if (!strcmp(files[cursor].ext, NSP_FILE))
+
+                //else if (!strcmp(files[cursor].ext, XCI_FILE))
+                
+                else if (!strcmp(files[cursor].ext, MP3_FILE))
+                    SDL_PlayMusic(files[cursor].file_name);
+
+                else if (!strcmp(files[cursor].ext, OGG_FILE))
+                    SDL_PlayMusic(files[cursor].file_name);
+
+                //else if (!strcmp(files[cursor].ext, WAV_FILE))
+
+                //else if (!strcmp(files[cursor].ext, FLAC_FILE))
+            }
+
+            else if (option == FILE_OPTION)
+            {
+                switch (file_option_cursor)
+                {
+                    case 0:
+                        // edit
+                        break;
+
+                    case 1:
+                        //cut
+                        break;
+
+                    case 2:
+                        //copy
+                        break;
+
+                    case 3:
+                        //move
+                        break;
+
+                    case 4:
+                        //delete
+                        break;
+
+                    case 5:
+                        //rename
+                        break;
+                }
             }
         }
 
         // jump back to root dir.
         if (kDown & KEY_B)
         {
-            if (!strcmp(files[0].file_name, ".."))
+            if (option == DIR_BROWSER)
             {
-                cursor = 0;
-                if (!file_stuff(&cursor, &number_of_files))
+                if (!strcmp(files[0].file_name, ".."))
                 {
+                    cursor = 0;
                     list_move = 0;
-                    draw_menu("temp");
-                    print_dir(number_of_files, list_move, cursor, files);
+                    file_stuff(&cursor, &number_of_files);
                 }
             }
+
+            else option = DIR_BROWSER;
         }
 
+        // file option menu.
         if (kDown & KEY_X)
         {
-            draw_menu("temp");
-            print_dir(number_of_files, list_move, cursor, files);
-
-            SDL_DrawShape(dark_grey, 350, 100, 250, 350);
-
-            SDL_DrawText(fntSmall, 375, 120, white, "%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s", "edit", "cut", "copy", "move", "delete", "rename");
+            if (option == DIR_BROWSER) option = FILE_OPTION;
+            else option = DIR_BROWSER;
         }
 
+        // exit.
         if (kDown & KEY_PLUS) break;
 
+        // render screen.
         SDL_UpdateRenderer();
     }
     
     // clean then exit...
-    free_node(files);
+    free(files);
+    free(folder_info);
     app_exit();
     return 0;
 }
