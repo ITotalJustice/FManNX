@@ -68,13 +68,13 @@
 #define BUTTON_L3           0xE104
 #define BUTTON_R3           0xE105
 
-SDL_Texture *screen_shot;
+SDL_Texture *screen_shot, *loaded_image_temp;
 TTF_Font *fntSmall, *fntMedium, *fntLarge, *fntButton, *fntButtonBig;
 
 SDL_Colour SDL_GetColour(int colour_option);                                            //pass the name of colour, returns the colour
 SDL_Window* SDL_GetWindow(void);                                                        //get sdl window
 
-void SDL_ImageLoad(SDL_Texture **texture, char *path);                                  //load image from texture
+void SDL_ImageLoad(SDL_Texture **texture, const char *path);                            //load image from texture
 void SDL_ImageLoadMem(SDL_Texture **texture, void *data, int size);                     //load image from memory
 
 void SDL_DrawText(TTF_Font *font, int x, int y, int colour, const char *text, ...);     //draw text to screen

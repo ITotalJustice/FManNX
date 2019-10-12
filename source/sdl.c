@@ -57,7 +57,7 @@ SDL_Window *SDL_GetWindow(void)
     return main_window;
 }
 
-void SDL_ImageLoad(SDL_Texture **texture, char *path)
+void SDL_ImageLoad(SDL_Texture **texture, const char *path)
 {
 	SDL_Surface *Surface = IMG_Load(path);
     SDL_ConvertSurfaceFormat(Surface, SDL_PIXELFORMAT_RGBA8888, 0);
@@ -180,6 +180,7 @@ void SDL_LoadTextures()
 void SDL_DestroyTextures()
 {
     if (screen_shot) SDL_DestroyTexture(screen_shot);
+    if (loaded_image_temp) SDL_DestroyTexture(loaded_image_temp);
 }
 
 void SDL_ClearRenderer()

@@ -6,12 +6,16 @@
 #include <switch.h>
 
 #include "dir.h"
-#include "sdl.h"
-#include "util.h"
-#include "sdl_music.h"
-#include "gfx_util.h"
-#include "zip.h"
 #include "file_option.h"
+
+#include "sdl.h"
+#include "sdl_music.h"
+
+#include "util.h"
+#include "gfx_util.h"
+
+#include "zip.h"
+#include "image.h"
 #include "reboot_payload.h"
 
 
@@ -318,9 +322,18 @@ int file_select()
     else if (!strcasecmp(files[cursor].ext, ZIP_FILE))
         return unzip_menu(pwd, files[cursor].file_name);
 
-    //else if (!strcasecmp(files[cursor].ext, FLAC_FILE))
+    //else if (!strcasecmp(files[cursor].ext, SEVZIP_FILE))
 
-    //else if (!strcasecmp(files[cursor].ext, FLAC_FILE))
+    //else if (!strcasecmp(files[cursor].ext, RAR_FILE))
+
+    else if (!strcasecmp(files[cursor].ext, PNG_FILE))
+        return image_menu(files[cursor].file_name);
+
+    else if (!strcasecmp(files[cursor].ext, JPG_FILE))
+        return image_menu(files[cursor].file_name);
+
+    else if (!strcasecmp(files[cursor].ext, BITMAP_FILE))
+        return image_menu(files[cursor].file_name);
 
     return 0;
 }
