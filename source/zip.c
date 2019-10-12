@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <minizip/unzip.h>
 #include <string.h>
 #include <dirent.h>
+#include <minizip/unzip.h>
 #include <switch.h>
 
 #include "sdl.h"
@@ -33,7 +33,7 @@ int is_folder(char *file)
     return NO;
 }
 
-void print_list(int cursor, int list_move)
+void print_zip_contents(int cursor, int list_move)
 {
 
 }
@@ -49,6 +49,7 @@ void free_zip_node()
 
 void close_zip()
 {
+    free_zip_node();
     unzClose(zfile);
 }
 
@@ -85,7 +86,7 @@ void unzip_all(const char *file)
     zfile = unzOpen(file);
     unzGetGlobalInfo(zfile, &gi);
 
-    for (uint8_t i = 0; i < gi.number_entry; i++)
+    for (uint16_t i = 0; i < gi.number_entry; i++)
     {
         unzip();
 
@@ -99,14 +100,12 @@ void unzip_all(const char *file)
 void set_position_inzip(int cursor)
 {
     unzGoToFirstFile(zfile);
-    for (uint8_t i = 0; i < cursor; i++)
+    for (uint16_t i = 0; i < cursor; i++)
         unzGoToNextFile(zfile);
 }
 
 void open_zip(const char *file)
 {
-    free_zip_node();
-
     zfile = unzOpen(file);
     unzGetGlobalInfo(zfile, &gi);
 
@@ -142,10 +141,13 @@ void compress_folder(const char *folder)
 
 }
 
-void unzip_menu(const char *file)
+int unzip_menu(char *pwd, const char *file)
 {
-    uint8_t cursor = 0;
+    uint16_t cursor = 0;
     uint8_t list_move = 0;
+
+    char full_path[BUFFER_MAX + BUFFER_MAX];
+    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, file);
 
     open_zip(file);
 
@@ -154,8 +156,8 @@ void unzip_menu(const char *file)
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
         hidScanInput();
 
-        draw_menu("temp");
-        print_list(cursor, list_move);
+        draw_menu(full_path);
+        print_zip_contents(cursor, list_move);
 
         if (kDown & KEY_UP)
             cursor = move_cursor_up(cursor, gi.number_entry);
@@ -166,12 +168,19 @@ void unzip_menu(const char *file)
         if (kDown & KEY_A)
             select_file_inzip(cursor);
 
-        // exit.
+        // exit menu.
         if (kDown & KEY_B) break;
+
+        // exit app.
+        if (kDown & KEY_PLUS)
+        {
+            close_zip();
+            return APP_EXIT;
+        }
 
         SDL_UpdateRenderer();
     }
 
     close_zip();
-    free_zip_node();
+    return 0;
 }

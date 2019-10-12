@@ -41,6 +41,18 @@ const char *get_filename_ext(const char *filename)
     return dot + 1;
 }
 
+int is_dir(const char *folder_to_check)
+{
+    DIR *dir = opendir(folder_to_check);
+    if (dir)
+    {
+        closedir(dir);
+        return YES;
+    }
+    
+    return NO;  
+}
+
 int check_if_dir_exists(const char *folder)
 {
     DIR *dir = opendir(folder);
@@ -55,7 +67,7 @@ int file_exists(char *newfile_buffer, const char *src)
     for (u_int8_t i = 1; i < 256; i++)
     {
         char buffer[520];
-        snprintf(buffer, sizeof(buffer), "%s%s%d%s", src, "(", i, ")");
+        snprintf(buffer, sizeof(buffer), "%s%c%d%c", src, '(', i, ')');
 
         FILE *fp = fopen(buffer, "r");
         if (!fp)
@@ -71,6 +83,23 @@ int file_exists(char *newfile_buffer, const char *src)
 void create_dir(const char *dir)
 {
     mkdir(dir, 0777);
+}
+
+int scan_dir(char *directory)
+{
+    int number_of_files = 0;
+
+    DIR *dir = opendir(directory);
+    struct dirent *de;
+
+    if (dir)
+    {
+        while ((de = readdir(dir)))
+            number_of_files++;
+        closedir(dir);
+    }
+
+    return number_of_files;
 }
 
 void copy_file(const char *src, char *dest)

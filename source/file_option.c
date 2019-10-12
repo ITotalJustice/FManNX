@@ -59,7 +59,7 @@ void select_option(int cursor)
     }
 }
 
-void file_options_menu()
+int file_options_menu(char *pwd)
 {
     uint8_t cursor = 0;
 
@@ -68,7 +68,7 @@ void file_options_menu()
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
         hidScanInput();
 
-        draw_menu("temp");
+        draw_menu(pwd);
         print_dir();
         print_file_options(cursor);
 
@@ -85,6 +85,12 @@ void file_options_menu()
         if (kDown & KEY_B || kDown & KEY_X)
             break;
 
+        // exit app.
+        if (kDown & KEY_PLUS)
+            return APP_EXIT;
+
         SDL_UpdateRenderer();
     }
+
+    return 0;
 }

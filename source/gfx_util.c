@@ -38,7 +38,7 @@ int yes_no_box(int x, int y, const char *question)
 
     SDL_UpdateRenderer();
 
-    while (1)
+    while (appletMainLoop())
     {
         hidScanInput();
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
@@ -64,8 +64,5 @@ void draw_menu(char *pwd)
     SDL_DrawShape(n_silver, 25, 35, 50, 5);
     SDL_DrawShape(n_silver, 25, 50, 50, 5);
 
-    char buffer[256];
-    getcwd(buffer, sizeof(buffer));
-
-    SDL_DrawText(fntMedium, 150, 25, white, "Dir: %s", buffer);
+    SDL_DrawText(fntMedium, 150, 25, white, "Dir: %s", pwd);
 }

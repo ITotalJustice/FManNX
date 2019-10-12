@@ -57,41 +57,12 @@ typedef struct folder_node
 node *files = NULL;
 folder_node *folder_info = NULL;
 
-static int cursor = 0;
-static int list_move = 0;
-static int number_of_files = 0;
+static uint16_t cursor = 0;
+static uint8_t list_move = 0;
+static uint16_t number_of_files = 0;
 
+static char pwd[BUFFER_MAX];
 
-int is_dir(char *folder_to_check)
-{
-    DIR *dir = opendir(folder_to_check);
-    if (dir)
-    {
-        closedir(dir);
-        return YES;
-    }
-    
-    return NO;  
-}
-
-void scan_dir(char *directory)
-{
-    number_of_files = 0;
-
-    // check if the dir is root, if not, +1 in order to display the ".."
-    char buffer[BUFFER_MAX];
-    if (strcmp(getcwd(buffer, sizeof(buffer)), ROOT)) number_of_files++;
-
-    DIR *dir = opendir(directory);
-    struct dirent *de;
-
-    if (dir)
-    {
-        while ((de = readdir(dir)))
-            number_of_files++;
-        closedir(dir);
-    }
-}
 
 void draw_file_icon(char *file, int x, int y, int w, int h)
 {
@@ -237,7 +208,7 @@ void print_dir()
         else draw_file_icon(files[j].ext, shape_x, nl, 20, 20);
         
         if (j == cursor)
-            SDL_DrawText(fntSmall, x, nl, grey, "> %s", files[j].file_name);
+            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", files[j].file_name);
         else
             SDL_DrawText(fntSmall, x, nl, n_white, "%s", files[j].file_name);
     }
@@ -252,10 +223,6 @@ void create_node(char *folder_location)
     {
         files = malloc(number_of_files * (sizeof(*files) + sizeof(*files)));
         folder_info = malloc(sizeof(*folder_info));
-        /*memset(files, 0, sizeof(node));
-        memset(folder_info, 0, sizeof(folder_node));*/
-
-        folder_info->total = number_of_files;
 
         int n = 0;
         char buffer[BUFFER_MAX];
@@ -264,7 +231,10 @@ void create_node(char *folder_location)
             strcpy(files[n].file_name, "..");
             files[n].dir = 1;
             n++;
+            number_of_files++;
         }
+
+        folder_info->total = number_of_files;
 
         // store all the information of each file in the directory.
         for ( ; (de = readdir(dir)); n++)
@@ -283,23 +253,28 @@ void create_node(char *folder_location)
     }
 }
 
-void file_stuff()
+int enter_directory()
 {
-    // look at this mess...
     // basically concatenate 2 strings, with a '/' in the middle. Extremely messy.
-    char buffer[BUFFER_MAX];
     char full_path[BUFFER_MAX + BUFFER_MAX];
-    snprintf(full_path, sizeof(full_path), "%s/%s", getcwd(buffer, sizeof(buffer)), files[cursor].file_name);
+    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, files[cursor].file_name);
 
+    // change directory to the new path.
     chdir(full_path);
+    getcwd(pwd, sizeof(pwd));
+
+    // reset the values.
     cursor = 0;
-    scan_dir(full_path);
+    list_move = 0;
+    number_of_files = scan_dir(full_path);
 
     // freeeeeeeee...
     free_nodes();
 
     // create new node with the size of number_of_files.
     create_node(full_path);
+
+    return 0;
 }
 
 void move_back_dir()
@@ -307,21 +282,18 @@ void move_back_dir()
     if (!strcmp(files[0].file_name, ".."))
     {
         cursor = 0;
-        list_move = 0;
-        file_stuff();
+        enter_directory();
     }
 }
 
-void file_select()
+int file_select()
 {
+    // if selected file is a dir, enter it.
     if (files[cursor].dir == YES)
-    {
-        file_stuff();
-        list_move = 0;
-    }
+        return enter_directory();
 
     else if (!strcasecmp(files[cursor].ext, PAYLOAD))
-        reboot_payload(files[cursor].file_name);
+        return reboot_payload(files[cursor].file_name);
 
     //else if (!strcasecmp(files[cursor].ext, TXT_FILE))
 
@@ -334,24 +306,38 @@ void file_select()
     //else if (!strcasecmp(files[cursor].ext, XCI_FILE))
     
     else if (!strcasecmp(files[cursor].ext, MP3_FILE))
-        SDL_PlayMusic(files[cursor].file_name);
+        return SDL_PlayMusic(files[cursor].file_name);
 
     else if (!strcasecmp(files[cursor].ext, OGG_FILE))
-        SDL_PlayMusic(files[cursor].file_name);
+        return SDL_PlayMusic(files[cursor].file_name);
 
     //else if (!strcasecmp(files[cursor].ext, WAV_FILE))
 
     //else if (!strcasecmp(files[cursor].ext, FLAC_FILE))
+
+    else if (!strcasecmp(files[cursor].ext, ZIP_FILE))
+        return unzip_menu(pwd, files[cursor].file_name);
+
+    //else if (!strcasecmp(files[cursor].ext, FLAC_FILE))
+
+    //else if (!strcasecmp(files[cursor].ext, FLAC_FILE))
+
+    return 0;
 }
 
 void directory_menu()
 {
+    number_of_files = scan_dir(ROOT);
+    create_node(ROOT);
+
+    getcwd(pwd, sizeof(pwd));
+
     while (appletMainLoop())
     {
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
         hidScanInput();
 
-        draw_menu("temp");
+        draw_menu(pwd);
         print_dir();
 
         // scroll up...
@@ -370,18 +356,20 @@ void directory_menu()
 
         if (kDown & KEY_A)
         {
-            file_select();
+            if (file_select() == APP_EXIT)
+                break;
         }
 
         if (kDown & KEY_B)
         {
-
+            move_back_dir();
         }
 
         // file option menu.
         if (kDown & KEY_X)
         {
-            file_options_menu();
+            if (file_options_menu(pwd) == APP_EXIT)
+            break;
         }
 
         // exit.
@@ -390,4 +378,6 @@ void directory_menu()
         // render screen.
         SDL_UpdateRenderer();
     }
+
+    free_nodes();
 }

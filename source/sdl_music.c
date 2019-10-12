@@ -5,7 +5,7 @@
 static Mix_Music *music = NULL;
 
 
-void SDL_PlayMusic(char *file)
+int SDL_PlayMusic(char *file)
 {
     if (music != NULL)
     {
@@ -16,6 +16,8 @@ void SDL_PlayMusic(char *file)
 
     music = Mix_LoadMUS(file);
     Mix_PlayMusic(music, 0);
+
+    return 0;
 }
 
 void SDL_SkipNextMusic(char **array, int *file, int files_max)
