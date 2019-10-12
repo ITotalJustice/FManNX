@@ -37,6 +37,12 @@
 #define purple      22
 #define indigo      23
 #define beige       24
+#define n_black     25
+#define n_light_black 26
+#define n_silver    27
+#define n_grey      28
+#define n_white     29
+#define n_cyan      30
 
 // buttons from NintendoExt
 #define BUTTON_A            0xE0E0

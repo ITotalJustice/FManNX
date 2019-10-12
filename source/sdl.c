@@ -38,6 +38,12 @@ SDL_Colour colours[] = {
     { 160, 32, 240 },           //purple
     { 75, 0, 130 },             //indigo
     { 245, 245, 220 },          //beige
+    { 45, 45, 45 },             //n_black
+    { 48, 48, 48 },             //n_light_black
+    { 128, 128, 128 },          //n_silver
+    { 77, 77, 77 },             //n_grey
+    { 251, 251, 251 },          //n_white
+    { 0, 255, 200 }             //n_cyan
     };
 
 SDL_Colour SDL_GetColour(int colour_option)
@@ -152,7 +158,7 @@ void SDL_LoadFonts()
     fntSmall        = TTF_OpenFontRW(SDL_RWFromMem(font.address, font.size), 1, 28);
     fntMedium       = TTF_OpenFontRW(SDL_RWFromMem(font.address, font.size), 1, 36);
     fntLarge        = TTF_OpenFontRW(SDL_RWFromMem(font.address, font.size), 1, 44);
-    fntButton       = TTF_OpenFontRW(SDL_RWFromMem(button_data.address, button_data.size), 1, 30);
+    fntButton       = TTF_OpenFontRW(SDL_RWFromMem(button_data.address, button_data.size), 1, 28);
     fntButtonBig    = TTF_OpenFontRW(SDL_RWFromMem(button_data.address, button_data.size), 1, 36);
 }
 
@@ -178,7 +184,12 @@ void SDL_DestroyTextures()
 void SDL_ClearRenderer()
 {
     SDL_RenderClear(main_renderer);
-    SDL_DrawShape(black, 0, 0, SCREEN_W, SCREEN_H);
+
+    SDL_DrawShape(n_black, 0, 0, SCREEN_W, SCREEN_H);
+    SDL_DrawShape(n_silver, 30, 85, SCREEN_W - 60, 3);
+    SDL_DrawShape(n_silver, 30, 635, SCREEN_W - 60, 3);
+
+    SDL_DrawButton(fntButton, BUTTON_PLUS, 1100, 650, n_white);
 }
 
 void SDL_UpdateRenderer()

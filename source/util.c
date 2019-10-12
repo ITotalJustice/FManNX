@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <dirent.h>
 
+#include "util.h"
+
+
 int move_cursor_up(int cursor, int cursor_max)
 {
     if (cursor == 0) cursor = cursor_max - 1;
@@ -36,6 +39,15 @@ const char *get_filename_ext(const char *filename)
     const char *dot = strrchr(filename, '.');
     if (!dot || dot == filename) return "";
     return dot + 1;
+}
+
+int check_if_dir_exists(const char *folder)
+{
+    DIR *dir = opendir(folder);
+    if (!dir) return NO;
+
+    closedir(dir);
+    return YES;
 }
 
 int file_exists(char *newfile_buffer, const char *src)

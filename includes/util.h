@@ -7,6 +7,7 @@
 #define PAYLOAD     "bin"
 #define TXT_FILE    "txt"
 #define INI_FILE    "ini"
+
 #define NRO_FILE    "nro"
 #define NSP_FILE    "nsp"
 #define XCI_FILE    "xci"
@@ -16,6 +17,16 @@
 #define WAV_FILE    "wav"
 #define FLAC_FILE   "flac"
 
+#define ZIP_FILE    "zip"
+#define SEVZIP_FILE "7z"
+#define RAR_FILE    "rar"
+
+#define PNG_FILE    "png"
+#define JPG_FILE    "jpg"
+#define BITMAP_FILE "bmp"
+
+#define MP4_FILE    "mp4"
+#define MKV_FILE    "mkv"
 
 int move_cursor_up(int cursor, int cursor_max);
 int move_cursor_down(int cursor, int cursor_max);
@@ -25,6 +36,7 @@ int list_move_down(int list_move, int cursor, int list_max);
 
 const char *get_filename_ext(const char *filename);
 
+int check_if_dir_exists(const char *folder);
 int file_exists(char *newfile_buffer, const char *src);
 void create_dir(const char *dir);
 

@@ -20,7 +20,7 @@ void SDL_PlayMusic(char *file)
 
 void SDL_SkipNextMusic(char **array, int *file, int files_max)
 {
-    if (*file + 1 <= files_max) *file++;
+    if (*file + 1 <= files_max) *++file;
     else *file = 0;
 
     SDL_PlayMusic(array[*file]);
@@ -28,7 +28,7 @@ void SDL_SkipNextMusic(char **array, int *file, int files_max)
 
 void SDL_SkipBackMusic(char **array, int *file, int files_max)
 {
-    if (*file - 1 >= 0) *file--;
+    if (*file - 1 >= 0) *--file;
     else *file = files_max;
 
     SDL_PlayMusic(array[*file]);
