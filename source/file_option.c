@@ -10,17 +10,17 @@ void print_file_options(int cursor)
 {
     char *options[] = 
     {
-        "edit", 
-        "cut", 
-        "copy", 
-        "move", 
-        "delete", 
+        "edit",
+        "cut",
+        "copy",
+        "move",
+        "delete",
         "rename"
     };
 
     SDL_DrawShape(n_grey, 350, 100, 250, 350);
 
-    for (u_int8_t i = 0, nl = 120; i < 6; i++, nl += 55)
+    for (uint16_t i = 0, nl = 120; i < 6; i++, nl += 55)
     {
         if (cursor == i)
             SDL_DrawText(fntSmall, 375, nl, grey, options[i]);

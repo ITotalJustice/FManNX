@@ -72,9 +72,6 @@ void unzip()
 
         FILE *outfile = fopen(write_filename, "wb");
 
-        printf("\n\n writing %s\n", write_filename);
-        consoleUpdate(NULL);
-
         for (uint16_t j = unzReadCurrentFile(zfile, buf, WRITEBUFFERSIZE); j > 0; j = unzReadCurrentFile(zfile, buf, WRITEBUFFERSIZE))
             fwrite(buf, 1, WRITEBUFFERSIZE, outfile);
 

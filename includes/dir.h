@@ -16,8 +16,8 @@ void file_stuff(void);
 void move_back_dir(void);
 void file_select(void);
 void free_nodes(void);
-void up(void);
-void down(void);
+
+void directory_menu(void);
 
 
 #endif

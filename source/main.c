@@ -46,13 +46,15 @@ void app_exit()
 
 int main(int argc, char **argv)
 {
-    // init stuff
+    // init stuff.
     app_init();
     chdir(ROOT);
 
     scan_dir(ROOT);
-    
     create_node(ROOT);
+
+    // the main menu loop.
+    directory_menu();
     
     // clean then exit...
     app_exit();

@@ -12,38 +12,39 @@
 static SDL_Window *main_window;
 static SDL_Renderer *main_renderer;
 
-SDL_Colour colours[] = {
-    { 255, 255, 255 },          //white
-    { 140, 140, 140, 255 },     //grey
-    { 81, 81, 81 },             //dark grey
-    { 0, 0, 0 },                //black
-    { 255, 192, 203 },          //pink
-    { 253, 52, 131, 1 },        //neon pink
-    { 255, 105, 180 },          //hotpink
-    { 255, 165, 0 },            //orange
-    { 255, 255, 0 },            //yellow
-    { 255, 215, 0 },            //gold
-    { 139, 69, 19 },            //brown
-    { 255, 0, 0 },              //red
-    { 139, 0, 0 },              //dark red
-    { 0, 128, 0 },              //green
-    { 50, 205, 50 },            //lime green
-    { 0, 255, 255 },            //aqua
-    { 0, 128, 128 },            //teal
-    { 0, 191, 255 },            //light blue
-    { 0, 0, 255 },              //blue
-    { 131, 177, 218 },          //jordy blue
-    { 97, 115, 255 },           //faint blue
-    { 28, 33, 73 },             //dark blue
-    { 160, 32, 240 },           //purple
-    { 75, 0, 130 },             //indigo
-    { 245, 245, 220 },          //beige
-    { 45, 45, 45 },             //n_black
-    { 48, 48, 48 },             //n_light_black
-    { 128, 128, 128 },          //n_silver
-    { 77, 77, 77 },             //n_grey
-    { 251, 251, 251 },          //n_white
-    { 0, 255, 200 }             //n_cyan
+SDL_Colour colours[] =
+    {
+        { 255, 255, 255 },          //white
+        { 140, 140, 140, 255 },     //grey
+        { 81, 81, 81 },             //dark grey
+        { 0, 0, 0 },                //black
+        { 255, 192, 203 },          //pink
+        { 253, 52, 131, 1 },        //neon pink
+        { 255, 105, 180 },          //hotpink
+        { 255, 165, 0 },            //orange
+        { 255, 255, 0 },            //yellow
+        { 255, 215, 0 },            //gold
+        { 139, 69, 19 },            //brown
+        { 255, 0, 0 },              //red
+        { 139, 0, 0 },              //dark red
+        { 0, 128, 0 },              //green
+        { 50, 205, 50 },            //lime green
+        { 0, 255, 255 },            //aqua
+        { 0, 128, 128 },            //teal
+        { 0, 191, 255 },            //light blue
+        { 0, 0, 255 },              //blue
+        { 131, 177, 218 },          //jordy blue
+        { 97, 115, 255 },           //faint blue
+        { 28, 33, 73 },             //dark blue
+        { 160, 32, 240 },           //purple
+        { 75, 0, 130 },             //indigo
+        { 245, 245, 220 },          //beige
+        { 45, 45, 45 },             //n_black
+        { 48, 48, 48 },             //n_light_black
+        { 128, 128, 128 },          //n_silver
+        { 77, 77, 77 },             //n_grey
+        { 251, 251, 251 },          //n_white
+        { 0, 255, 200 }             //n_cyan
     };
 
 SDL_Colour SDL_GetColour(int colour_option)
