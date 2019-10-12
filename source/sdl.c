@@ -190,7 +190,7 @@ void SDL_ClearRenderer()
     SDL_DrawShape(n_silver, 30, 87, SCREEN_W - 60, 1);
     SDL_DrawShape(n_silver, 30, 633, SCREEN_W - 60, 1);
 
-    SDL_DrawButton(fntButton, BUTTON_PLUS, 1100, 650, n_white);
+    //SDL_DrawButton(fntButton, BUTTON_PLUS, 1100, 650, n_white);
 }
 
 void SDL_UpdateRenderer()

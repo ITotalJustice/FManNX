@@ -64,6 +64,21 @@ static uint16_t number_of_files = 0;
 static char pwd[BUFFER_MAX];
 
 
+void free_nodes()
+{
+    if (files != NULL)
+    {
+        free(files);
+        files = NULL;
+    }
+
+    if (folder_info != NULL)
+    {
+        free(folder_info);
+        folder_info = NULL;
+    }
+}
+
 void draw_file_icon(char *file, int x, int y, int w, int h)
 {
     if (!strcmp(file, PAYLOAD))
@@ -175,21 +190,6 @@ void draw_file_icon(char *file, int x, int y, int w, int h)
     }
 
     else SDL_DrawShape(n_white, x, y, w, h); 
-}
-
-void free_nodes()
-{
-    if (files != NULL)
-    {
-        free(files);
-        files = NULL;
-    }
-
-    if (folder_info != NULL)
-    {
-        free(folder_info);
-        folder_info = NULL;
-    }
 }
 
 void print_dir()

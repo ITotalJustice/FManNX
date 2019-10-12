@@ -35,7 +35,15 @@ int is_folder(char *file)
 
 void print_zip_contents(int cursor, int list_move)
 {
+    int x = 150;
 
+    for (int i = 0, j = list_move, nl = 110; i < gi.number_entry && i < LIST_MAX; i++, j++, nl += 60)
+    {   
+        if (j == cursor)
+            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", zip_node[j].name);
+        else
+            SDL_DrawText(fntSmall, x, nl, n_white, "%s", zip_node[j].name);
+    }
 }
 
 void free_zip_node()
@@ -160,10 +168,16 @@ int unzip_menu(char *pwd, const char *file)
         print_zip_contents(cursor, list_move);
 
         if (kDown & KEY_UP)
+        {
             cursor = move_cursor_up(cursor, gi.number_entry);
+            list_move = list_move_up(list_move, cursor, gi.number_entry, LIST_MAX);
+        }
 
         if (kDown & KEY_DOWN)
+        {
             cursor = move_cursor_down(cursor, gi.number_entry);
+            list_move = list_move_down(list_move, cursor, LIST_MAX);
+        }
 
         if (kDown & KEY_A)
             select_file_inzip(cursor);
