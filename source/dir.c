@@ -18,6 +18,8 @@
 #include "image.h"
 #include "reboot_payload.h"
 
+#define MAX_FILES   10000
+
 
 typedef struct node
 {
@@ -25,9 +27,9 @@ typedef struct node
     char ext[5];
     u_int8_t dir;
     u_int file_size;
-} node;
+} node_t;
 
-typedef struct folder_node
+typedef struct folder_info
 {
     uint16_t total;
     uint16_t total_folders;
@@ -56,10 +58,10 @@ typedef struct folder_node
 
     uint8_t total_mp4;
     uint8_t total_mkv;
-} folder_node;
+} folder_info_t;
 
-node *files = NULL;
-folder_node *folder_info = NULL;
+node_t *files[MAX_FILES];
+folder_info_t *folder_info;
 
 static uint16_t cursor = 0;
 static uint8_t list_move = 0;
@@ -70,11 +72,8 @@ static char pwd[BUFFER_MAX];
 
 void free_nodes()
 {
-    if (files != NULL)
-    {
-        free(files);
-        files = NULL;
-    }
+    for (uint16_t i = 0; i < number_of_files; i++)
+        free(files[i]);
 
     if (folder_info != NULL)
     {
@@ -203,33 +202,30 @@ void print_dir()
 
     for (int i = 0, j = list_move, nl = 110; i < number_of_files && i < LIST_MAX; i++, j++, nl += 60)
     {
-        if (files[j].dir == YES)
+        if (files[j]->dir == YES)
         {
             SDL_DrawShape(purple, shape_x, nl, 20, 20);
             folder_info->total_folders++;
         }
 
-        else draw_file_icon(files[j].ext, shape_x, nl, 20, 20);
+        else draw_file_icon(files[j]->ext, shape_x, nl, 20, 20);
         
         if (j == cursor)
-            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", files[j].file_name);
+            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", files[j]->file_name);
         else
-            SDL_DrawText(fntSmall, x, nl, n_white, "%s", files[j].file_name);
+            SDL_DrawText(fntSmall, x, nl, n_white, "%s", files[j]->file_name);
     }
 }
 
 void swap(int i, int j)
 {
-    // create a temporary node.
-    node *temp = malloc(sizeof(*files));
+    // create a temporary node_t.
+    node_t *temp;
 
     //swap...
-    *temp = files[i];
+    temp = files[i];
     files[i] = files[j];
-    files[j] = *temp;
-
-    //free temp.
-    free(temp);
+    files[j] = temp;
 }
 
 void struct_sort(int left, int right)
@@ -243,11 +239,11 @@ void struct_sort(int left, int right)
     for (int i = left + 1; i <= right; i++)
     {
         // if right is a dir and the left side is not, swap.
-        if (files[left].dir == NO && files[i].dir == YES)
+        if (files[left]->dir == NO && files[i]->dir == YES)
             swap(++last, i);
 
         // swap if right side comes before left.
-        else if (strcasecmp(files[i].file_name, files[left].file_name) < 0)
+        else if (strcasecmp(files[i]->file_name, files[left]->file_name) < 0)
             swap(++last, i);
     }
 
@@ -263,15 +259,16 @@ void create_node(char *folder_location)
     
     if (dir)
     {
-        files = malloc(number_of_files * (sizeof(*files) + sizeof(*files)));
-        folder_info = malloc(sizeof(*folder_info));
+        folder_info = malloc(sizeof(folder_info_t));
 
         int n = 0;
         char buffer[BUFFER_MAX];
         if (strcmp(getcwd(buffer, sizeof(buffer)), ROOT))
         {
-            strcpy(files[n].file_name, "..");
-            files[n].dir = 1;
+            files[n] = malloc(sizeof(node_t));
+            strcpy(files[n]->file_name, "..");
+            files[n]->dir = YES;
+
             n++;
             number_of_files++;
         }
@@ -281,14 +278,16 @@ void create_node(char *folder_location)
         // store all the information of each file in the directory.
         for ( ; (de = readdir(dir)); n++)
         {
-            strcpy(files[n].file_name, de->d_name);
+            files[n] = malloc(sizeof(node_t));
 
-            if (is_dir(de->d_name)) files[n].dir = YES;
+            strcpy(files[n]->file_name, de->d_name);
+
+            if (is_dir(de->d_name)) files[n]->dir = YES;
 
             else
             {
-                files[n].dir = NO;
-                strcpy(files[n].ext, get_filename_ext(de->d_name));
+                files[n]->dir = NO;
+                strcpy(files[n]->ext, get_filename_ext(de->d_name));
             }
         }
         closedir(dir);
@@ -302,7 +301,7 @@ int enter_directory()
 {
     // concatenate 2 strings, with a '/' in the middle.
     char full_path[BUFFER_MAX + BUFFER_MAX];
-    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, files[cursor].file_name);
+    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, files[cursor]->file_name);
 
     // change directory to the new path.
     chdir(full_path);
@@ -316,7 +315,7 @@ int enter_directory()
     // freeeeeeeee...
     free_nodes();
 
-    // create new node with the size of number_of_files.
+    // create new node_t with the size of number_of_files.
     create_node(full_path);
 
     return 0;
@@ -324,7 +323,7 @@ int enter_directory()
 
 void move_back_dir()
 {
-    if (!strcmp(files[0].file_name, ".."))
+    if (!strcmp(files[0]->file_name, ".."))
     {
         cursor = 0;
         enter_directory();
@@ -334,47 +333,47 @@ void move_back_dir()
 int file_select()
 {
     // if selected file is a dir, enter it.
-    if (files[cursor].dir == YES)
+    if (files[cursor]->dir == YES)
         return enter_directory();
 
-    else if (!strcasecmp(files[cursor].ext, PAYLOAD))
-        return reboot_payload(files[cursor].file_name);
+    else if (!strcasecmp(files[cursor]->ext, PAYLOAD))
+        return reboot_payload(files[cursor]->file_name);
 
-    //else if (!strcasecmp(files[cursor].ext, TXT_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, TXT_FILE))
 
-    //else if (!strcasecmp(files[cursor].ext, INI_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, INI_FILE))
 
-    //else if (!strcasecmp(files[cursor].ext, NRO_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, NRO_FILE))
 
-    //else if (!strcasecmp(files[cursor].ext, NSP_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, NSP_FILE))
 
-    //else if (!strcasecmp(files[cursor].ext, XCI_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, XCI_FILE))
     
-    else if (!strcasecmp(files[cursor].ext, MP3_FILE))
-        return SDL_PlayMusic(files[cursor].file_name);
+    else if (!strcasecmp(files[cursor]->ext, MP3_FILE))
+        return SDL_PlayMusic(files[cursor]->file_name);
 
-    else if (!strcasecmp(files[cursor].ext, OGG_FILE))
-        return SDL_PlayMusic(files[cursor].file_name);
+    else if (!strcasecmp(files[cursor]->ext, OGG_FILE))
+        return SDL_PlayMusic(files[cursor]->file_name);
 
-    //else if (!strcasecmp(files[cursor].ext, WAV_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, WAV_FILE))
 
-    //else if (!strcasecmp(files[cursor].ext, FLAC_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, FLAC_FILE))
 
-    else if (!strcasecmp(files[cursor].ext, ZIP_FILE))
-        return unzip_menu(pwd, files[cursor].file_name);
+    else if (!strcasecmp(files[cursor]->ext, ZIP_FILE))
+        return unzip_menu(pwd, files[cursor]->file_name);
 
-    //else if (!strcasecmp(files[cursor].ext, SEVZIP_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, SEVZIP_FILE))
 
-    //else if (!strcasecmp(files[cursor].ext, RAR_FILE))
+    //else if (!strcasecmp(files[cursor]->ext, RAR_FILE))
 
-    else if (!strcasecmp(files[cursor].ext, PNG_FILE))
-        return image_menu(files[cursor].file_name);
+    else if (!strcasecmp(files[cursor]->ext, PNG_FILE))
+        return image_menu(files[cursor]->file_name);
 
-    else if (!strcasecmp(files[cursor].ext, JPG_FILE))
-        return image_menu(files[cursor].file_name);
+    else if (!strcasecmp(files[cursor]->ext, JPG_FILE))
+        return image_menu(files[cursor]->file_name);
 
-    else if (!strcasecmp(files[cursor].ext, BITMAP_FILE))
-        return image_menu(files[cursor].file_name);
+    else if (!strcasecmp(files[cursor]->ext, BITMAP_FILE))
+        return image_menu(files[cursor]->file_name);
 
     return 0;
 }
