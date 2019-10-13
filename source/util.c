@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -95,6 +96,44 @@ int file_exists(char *newfile_buffer, const char *src)
 void create_dir(const char *dir)
 {
     mkdir(dir, 0777);
+}
+
+void delete_dir(const char *directory)
+{
+    DIR *dir = opendir(directory);
+    struct dirent *de;
+
+    if (dir)
+    {
+        while ((de = readdir(dir)))
+        {
+            if (strcmp(de->d_name, ".") || strcmp(de->d_name, ".."))
+            {
+                size_t len = strlen(directory) + strlen(de->d_name) + 3;
+                char *full_path = malloc(sizeof(char) * len);
+
+                snprintf(full_path, len, "%s/%s", directory, de->d_name);
+
+                if (is_dir(full_path) == NO)
+                {
+                    printf("removing %s\n", full_path);
+                    remove(full_path);
+                }
+
+                else
+                {
+                    printf("reeeecursion\n");
+                    delete_dir(full_path);
+                }
+
+                free(full_path);
+            }
+        }
+        closedir(dir);
+
+        printf("removing dir\n");
+        rmdir(directory);
+    }
 }
 
 int scan_dir(char *directory)

@@ -6,7 +6,7 @@ void pop_up_box(int x, int y, int colour, const char *text);
 int yes_no_box(int x, int y, const char *question);
 void error_box(int x, int y, const char *error_text);
 
-void draw_menu(char *pwd);
+void draw_menu(const char *pwd);
 void draw_file_options(int cursor);
 
 #endif

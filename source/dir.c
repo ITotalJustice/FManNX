@@ -216,7 +216,7 @@ void struct_sort(int left, int right)
     struct_sort(last+1, right);
 }
 
-void create_node(char *folder_location)
+void create_node(const char *folder_location)
 {
     DIR *dir = opendir(folder_location);
     struct dirent *de;
@@ -266,6 +266,10 @@ void create_node(char *folder_location)
             printf("sorting array...\n\n");
             struct_sort(0, folder_info->total - 1);
         }
+
+        // reset the values.
+        cursor = 0;
+        list_move = 0;
     }
 }
 
@@ -281,10 +285,6 @@ int enter_directory()
     // set new pwd.
     memset(pwd, '\0', sizeof(pwd));
     getcwd(pwd, sizeof(pwd));
-
-    // reset the values.
-    cursor = 0;
-    list_move = 0;
 
     // freeeeeeeee...
     free_nodes();
@@ -389,7 +389,7 @@ void directory_menu()
 
         // file option menu.
         if (kDown & KEY_X)
-            if (file_options_menu(pwd) == APP_EXIT)
+            if (file_options_menu(file_info[cursor]->file_name, pwd) == APP_EXIT)
                 break;
 
         // exit.

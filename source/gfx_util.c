@@ -46,6 +46,8 @@ int yes_no_box(int x, int y, const char *question)
         if (kDown & KEY_A) return YES;
         if (kDown & KEY_B) return NO;
     }
+
+    return 0;
 }
 
 void error_box(int x, int y, const char *error_text)
@@ -56,7 +58,7 @@ void error_box(int x, int y, const char *error_text)
     //sleep(3);
 }
 
-void draw_menu(char *pwd)
+void draw_menu(const char *pwd)
 {
     SDL_ClearRenderer();
 

@@ -53,6 +53,7 @@ int scan_dir(char *directory);
 
 //
 void create_dir(const char *dir);
+void delete_dir(const char *directory);
 
 //
 void copy_file(const char *src, char *dest);

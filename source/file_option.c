@@ -5,10 +5,22 @@
 #include "util.h"
 #include "gfx_util.h"
 
+#define OPTION_LIST_MAX 6
+
+#define EDIT    0
+#define CUT     1
+#define COPY    2
+#define MOVE    3
+#define DELETE  4
+#define RENAME  5
+
+// GLOBALS.
+static char file_temp[FILENAME_MAX];
+
 
 void print_file_options(int cursor)
 {
-    char *options[] = 
+    char *options[OPTION_LIST_MAX] = 
     {
         "edit",
         "cut",
@@ -29,37 +41,45 @@ void print_file_options(int cursor)
     }
 }
 
-void select_option(int cursor)
+int select_option(int cursor, const char *file, const char *pwd)
 {
     switch (cursor)
     {
-        case 0:
-            // edit
+        case EDIT:
             break;
 
-        case 1:
-            //cut
-            break;
+        case CUT:
+            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
+            return 1;
 
-        case 2:
-            //copy
-            break;
+        case COPY:
+            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
+            return 1;
 
-        case 3:
-            //move
-            break;
+        case MOVE:
+            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
+            return 1;
 
-        case 4:
-            //delete
-            break;
+        case DELETE:
+            if (is_dir(file) == YES)
+                delete_dir(file);
 
-        case 5:
-            //rename
+            else
+                remove(file);
+
+            free_nodes();
+            create_node(pwd);
+            return 1;
+
+        case RENAME:
+            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
             break;
     }
+
+    return 0;
 }
 
-int file_options_menu(char *pwd)
+int file_options_menu(const char *file, const char *pwd)
 {
     uint8_t cursor = 0;
 
@@ -73,13 +93,14 @@ int file_options_menu(char *pwd)
         print_file_options(cursor);
 
         if (kDown & KEY_UP)
-            cursor = move_cursor_up(cursor, 6);
+            cursor = move_cursor_up(cursor, OPTION_LIST_MAX);
 
         if (kDown & KEY_DOWN)
-            cursor = move_cursor_down(cursor, 6);
+            cursor = move_cursor_down(cursor, OPTION_LIST_MAX);
 
         if (kDown & KEY_A)
-            select_option(cursor);
+            if (select_option(cursor, file, pwd) == 1)
+                return 0;
 
         // exit out of menu.
         if (kDown & KEY_B || kDown & KEY_X)

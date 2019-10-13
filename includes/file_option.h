@@ -3,6 +3,6 @@
 
 
 //
-int file_options_menu(char *pwd);
+int file_options_menu(const char *file, const char *pwd);
 
 #endif

@@ -50,7 +50,7 @@ typedef struct folder_info
 
 
 void print_dir(void);                       // print all files in a dir.
-void create_node(char *folder_location);    // create a node sizeof (node * number_of_files).
+void create_node(const char *folder_location);    // create a node sizeof (node * number_of_files).
 
 int enter_directory(void);
 void move_back_dir(void);
