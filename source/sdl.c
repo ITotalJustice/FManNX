@@ -109,6 +109,27 @@ void SDL_DrawImage(SDL_Texture *texture, int x, int y)
 	SDL_RenderCopy(main_renderer, texture, NULL, &pos);
 }
 
+void SDL_DrawImageRotate(SDL_Texture *texture, int x, int y, double rotate)
+{
+    SDL_Rect pos;
+    SDL_Point center;
+
+	SDL_QueryTexture(texture, NULL, NULL, &pos.w, &pos.h);
+
+    pos.x = 0;
+    pos.y = 0;
+
+    int halfwidth = pos.w / 2;
+
+    center.x = halfwidth;
+    center.y = pos.h - halfwidth;
+
+    SDL_RenderCopyEx(main_renderer, texture, NULL, &pos, rotate, &center, SDL_FLIP_NONE);
+
+    printf("pos.w %d\npos.h %d\ncenter.y %d\n", pos.w, pos.h, center.y);
+
+}
+
 void SDL_DrawImageScale(SDL_Texture *texture, int x, int y, int w, int h)
 {
     SDL_Rect pos = { pos.x = x, pos.y = y, pos.w = w, pos.h = h };

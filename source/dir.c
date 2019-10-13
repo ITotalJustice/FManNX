@@ -85,109 +85,109 @@ void free_nodes()
 
 void draw_file_icon(char *file, int x, int y, int w, int h)
 {
-    if (!strcmp(file, PAYLOAD))
+    if (!strcasecmp(file, PAYLOAD))
     {
         folder_info->total_payloads++;
         SDL_DrawShape(brown, x, y, w, h);
     }
 
-    else if (!strcmp(file, TXT_FILE))
+    else if (!strcasecmp(file, TXT_FILE))
     {
         folder_info->total_txt++;
         SDL_DrawShape(green, x, y, w, h);
     }
 
-    else if (!strcmp(file, INI_FILE))
+    else if (!strcasecmp(file, INI_FILE))
     {
         folder_info->total_ini++;
         SDL_DrawShape(orange, x, y, w, h);
     }
 
-    else if (!strcmp(file, NRO_FILE))
+    else if (!strcasecmp(file, NRO_FILE))
     {
         folder_info->total_nro++;
         SDL_DrawShape(yellow, x, y, w, h);
     }
 
-    else if (!strcmp(file, NSP_FILE))
+    else if (!strcasecmp(file, NSP_FILE))
     {
         folder_info->total_nsp++;
         SDL_DrawShape(pink, x, y, w, h);
     }
 
-    else if (!strcmp(file, XCI_FILE))
+    else if (!strcasecmp(file, XCI_FILE))
     {
         folder_info->total_xci++;
         SDL_DrawShape(red, x, y, w, h);
     }
 
-    else if (!strcmp(file, MP3_FILE))
+    else if (!strcasecmp(file, MP3_FILE))
     {
         folder_info->total_mp3++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, OGG_FILE))
+    else if (!strcasecmp(file, OGG_FILE))
     {
         folder_info->total_ogg++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, WAV_FILE))
+    else if (!strcasecmp(file, WAV_FILE))
     {
         folder_info->total_wav++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, FLAC_FILE))
+    else if (!strcasecmp(file, FLAC_FILE))
     {
         folder_info->total_flac++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, ZIP_FILE))
+    else if (!strcasecmp(file, ZIP_FILE))
     {
         folder_info->total_zip++;
         SDL_DrawShape(red, x, y, w, h);
     }
 
-    else if (!strcmp(file, SEVZIP_FILE))
+    else if (!strcasecmp(file, SEVZIP_FILE))
     {
         folder_info->total_7zip++;
         SDL_DrawShape(red, x, y, w, h);
     }
 
-    else if (!strcmp(file, RAR_FILE))
+    else if (!strcasecmp(file, RAR_FILE))
     {
         folder_info->total_rar++;
         SDL_DrawShape(red, x, y, w, h);
     }
 
-    else if (!strcmp(file, PNG_FILE))
+    else if (!strcasecmp(file, PNG_FILE))
     {
         folder_info->total_png++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, JPG_FILE))
+    else if (!strcasecmp(file, JPG_FILE))
     {
         folder_info->total_jpg++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, BITMAP_FILE))
+    else if (!strcasecmp(file, BITMAP_FILE))
     {
         folder_info->total_bmp++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, MP4_FILE))
+    else if (!strcasecmp(file, MP4_FILE))
     {
         folder_info->total_mp4++;
         SDL_DrawShape(indigo, x, y, w, h);
     }
 
-    else if (!strcmp(file, MKV_FILE))
+    else if (!strcasecmp(file, MKV_FILE))
     {
         folder_info->total_mkv++;
         SDL_DrawShape(indigo, x, y, w, h);
@@ -216,6 +216,44 @@ void print_dir()
         else
             SDL_DrawText(fntSmall, x, nl, n_white, "%s", files[j].file_name);
     }
+}
+
+void swap(int i, int j)
+{
+    // create a temporary node.
+    node *temp = malloc(sizeof(*files));
+
+    //swap...
+    *temp = files[i];
+    files[i] = files[j];
+    files[j] = *temp;
+
+    //free temp.
+    free(temp);
+}
+
+void struct_sort(int left, int right)
+{
+    if (left >= right)
+        return;
+
+    swap(left, (left + right)/2);
+    int last = left;
+
+    for (int i = left + 1; i <= right; i++)
+    {
+        // if right is a dir and the left side is not, swap.
+        if (files[left].dir == NO && files[i].dir == YES)
+            swap(++last, i);
+
+        // swap if right side comes before left.
+        else if (strcasecmp(files[i].file_name, files[left].file_name) < 0)
+            swap(++last, i);
+    }
+
+    swap(left, last);
+    struct_sort(left, last-1);
+    struct_sort(last+1, right);
 }
 
 void create_node(char *folder_location)
@@ -254,12 +292,15 @@ void create_node(char *folder_location)
             }
         }
         closedir(dir);
+
+        if (number_of_files > 2)
+            struct_sort(0, number_of_files - 1);
     }
 }
 
 int enter_directory()
 {
-    // basically concatenate 2 strings, with a '/' in the middle. Extremely messy.
+    // concatenate 2 strings, with a '/' in the middle.
     char full_path[BUFFER_MAX + BUFFER_MAX];
     snprintf(full_path, sizeof(full_path), "%s/%s", pwd, files[cursor].file_name);
 
@@ -368,25 +409,20 @@ void directory_menu()
         }
 
         if (kDown & KEY_A)
-        {
             if (file_select() == APP_EXIT)
                 break;
-        }
 
         if (kDown & KEY_B)
-        {
             move_back_dir();
-        }
 
         // file option menu.
         if (kDown & KEY_X)
-        {
             if (file_options_menu(pwd) == APP_EXIT)
-            break;
-        }
+                break;
 
         // exit.
-        if (kDown & KEY_PLUS) break;
+        if (kDown & KEY_PLUS)
+            break;
 
         // render screen.
         SDL_UpdateRenderer();

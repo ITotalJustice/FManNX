@@ -8,7 +8,7 @@
 #include "sdl.h"
 #include "sdl_music.h"
 
-//#define DEBUG
+#define DEBUG
 
 
 void app_init()
