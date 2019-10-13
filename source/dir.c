@@ -276,8 +276,9 @@ void create_node(const char *folder_location)
 int enter_directory()
 {
     // concatenate 2 strings, with a '/' in the middle.
-    char full_path[BUFFER_MAX + BUFFER_MAX];
-    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, file_info[cursor]->file_name);
+    char *full_path;
+    if (!asiprintf(&full_path, "%s/%s", pwd, file_info[cursor]->file_name))
+        return 1;
 
     // change directory to the new path.
     chdir(full_path);
@@ -291,6 +292,7 @@ int enter_directory()
 
     // create new file_info_t with the size of number_of_files.
     create_node(full_path);
+    free(full_path);
 
     return 0;
 }

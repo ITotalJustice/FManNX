@@ -103,37 +103,37 @@ void delete_dir(const char *directory)
     DIR *dir = opendir(directory);
     struct dirent *de;
 
-    if (dir)
+    if (!dir)
+        return;
+
+    while ((de = readdir(dir)))
     {
-        while ((de = readdir(dir)))
+        if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+            continue;
+
+        char *full_path;
+        if (!asiprintf(&full_path, "%s/%s", directory, de->d_name))
+            return;
+
+        if (is_dir(full_path) == NO)
         {
-            if (strcmp(de->d_name, ".") || strcmp(de->d_name, ".."))
-            {
-                size_t len = strlen(directory) + strlen(de->d_name) + 3;
-                char *full_path = malloc(sizeof(char) * len);
-
-                snprintf(full_path, len, "%s/%s", directory, de->d_name);
-
-                if (is_dir(full_path) == NO)
-                {
-                    printf("removing %s\n", full_path);
-                    remove(full_path);
-                }
-
-                else
-                {
-                    printf("reeeecursion\n");
-                    delete_dir(full_path);
-                }
-
-                free(full_path);
-            }
+            printf("removing %s\n", full_path);
+            remove(full_path);
         }
-        closedir(dir);
 
-        printf("removing dir\n");
-        rmdir(directory);
+        else
+        {
+            printf("reeeecursion\n");
+            delete_dir(full_path);
+        }
+
+        free(full_path);
     }
+
+    closedir(dir);
+
+    printf("removing dir\n");
+    rmdir(directory);
 }
 
 int scan_dir(char *directory)

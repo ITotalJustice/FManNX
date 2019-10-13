@@ -149,8 +149,9 @@ int unzip_menu(char *pwd, const char *file)
     uint16_t cursor = 0;
     uint8_t list_move = 0;
 
-    char full_path[BUFFER_MAX + BUFFER_MAX];
-    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, file);
+    char *full_path;
+    if (!asiprintf(&full_path, "%s/%s", pwd, file))
+        return 1;
 
     //open_zip(file);
 
@@ -186,6 +187,7 @@ int unzip_menu(char *pwd, const char *file)
         // exit app.
         if (kDown & KEY_PLUS)
         {
+            free(full_path);
             close_zip();
             return APP_EXIT;
         }
@@ -193,6 +195,7 @@ int unzip_menu(char *pwd, const char *file)
         SDL_UpdateRenderer();
     }
 
+    free(full_path);
     close_zip();
     return 0;
 }

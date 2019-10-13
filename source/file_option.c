@@ -41,7 +41,7 @@ void print_file_options(int cursor)
     }
 }
 
-int select_option(int cursor, const char *file, const char *pwd)
+void select_option(int cursor, const char *file, const char *pwd)
 {
     switch (cursor)
     {
@@ -50,15 +50,15 @@ int select_option(int cursor, const char *file, const char *pwd)
 
         case CUT:
             snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
-            return 1;
+            break;
 
         case COPY:
             snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
-            return 1;
+            break;
 
         case MOVE:
             snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
-            return 1;
+            break;
 
         case DELETE:
             if (is_dir(file) == YES)
@@ -69,14 +69,12 @@ int select_option(int cursor, const char *file, const char *pwd)
 
             free_nodes();
             create_node(pwd);
-            return 1;
+            break;
 
         case RENAME:
             snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
             break;
     }
-
-    return 0;
 }
 
 int file_options_menu(const char *file, const char *pwd)
@@ -99,8 +97,10 @@ int file_options_menu(const char *file, const char *pwd)
             cursor = move_cursor_down(cursor, OPTION_LIST_MAX);
 
         if (kDown & KEY_A)
-            if (select_option(cursor, file, pwd) == 1)
-                return 0;
+        {
+            select_option(cursor, file, pwd);
+            break;
+        }
 
         // exit out of menu.
         if (kDown & KEY_B || kDown & KEY_X)
