@@ -12,24 +12,20 @@
 #define WRITEBUFFERSIZE 500000 // 500KB
 #define MAXFILENAME     256
 
-typedef struct node
-{
-    char name[512];
-    uint16_t size;
-    char folder[2];
-}node;
-
 unzFile zfile;
 unz_global_info gi;
 unz_file_info file_info;
 unz_file_pos zpos;
-node *zip_node;
+
+file_info_t *zip_node;
 
 
 int is_folder(char *file)
 {
     // check if the string ends with a /, if so, then its a directory.
-    if ((file[strlen(file) - 1]) == '/') return YES;
+    if ((file[strlen(file) - 1]) == '/')
+        return YES;
+    
     return NO;
 }
 
@@ -40,9 +36,9 @@ void print_zip_contents(int cursor, int list_move)
     for (int i = 0, j = list_move, nl = 110; i < gi.number_entry && i < LIST_MAX; i++, j++, nl += 60)
     {   
         if (j == cursor)
-            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", zip_node[j].name);
+            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", zip_node[j].file_name);
         else
-            SDL_DrawText(fntSmall, x, nl, n_white, "%s", zip_node[j].name);
+            SDL_DrawText(fntSmall, x, nl, n_white, "%s", zip_node[j].file_name);
     }
 }
 
@@ -57,7 +53,7 @@ void free_zip_node()
 
 void close_zip()
 {
-    free_zip_node();
+    //free_zip_node();
     unzClose(zfile);
 }
 
@@ -117,17 +113,14 @@ void open_zip(const char *file)
     zfile = unzOpen(file);
     unzGetGlobalInfo(zfile, &gi);
 
-    zip_node = malloc(sizeof(*zip_node) * gi.number_entry);
+    zip_node = malloc(sizeof(file_info_t) * gi.number_entry);
 
     for (uint8_t i = 0; i < gi.number_entry; i++)
     {
-        char filename_inzip[MAXFILENAME];
-
         unzOpenCurrentFile(zfile);
-        unzGetCurrentFileInfo(zfile, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0);
+        unzGetCurrentFileInfo(zfile, &file_info, zip_node[i].file_name, sizeof(zip_node[i].file_name), NULL, 0, NULL, 0);
 
-        strcpy(zip_node[i].name, filename_inzip);
-        zip_node[i].size = file_info.uncompressed_size;
+        zip_node[i].file_size = file_info.uncompressed_size;
 
         unzCloseCurrentFile(zfile);
         unzGoToNextFile(zfile);
@@ -151,13 +144,18 @@ void compress_folder(const char *folder)
 
 int unzip_menu(char *pwd, const char *file)
 {
+    printf("\ninside zip menu\n\n");
+    
     uint16_t cursor = 0;
     uint8_t list_move = 0;
 
     char full_path[BUFFER_MAX + BUFFER_MAX];
     snprintf(full_path, sizeof(full_path), "%s/%s", pwd, file);
 
-    open_zip(file);
+    //open_zip(file);
+
+    zfile = unzOpen(file);
+    unzGetGlobalInfo(zfile, &gi);
 
     while (appletMainLoop())
     {
@@ -165,7 +163,7 @@ int unzip_menu(char *pwd, const char *file)
         hidScanInput();
 
         draw_menu(full_path);
-        print_zip_contents(cursor, list_move);
+        //print_zip_contents(cursor, list_move);
 
         if (kDown & KEY_UP)
         {

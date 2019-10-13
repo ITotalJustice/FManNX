@@ -20,10 +20,8 @@ void app_init()
 
     plInitialize();
     splInitialize();
-    romfsInit();
     sdlInit();
     sdl_music_init();
-    romfsExit();
 }
 
 void app_exit()
@@ -41,6 +39,10 @@ int main(int argc, char **argv)
 {
     // init stuff.
     app_init();
+
+    printf("hello, world\n\n");
+
+    // change dir to root.
     chdir(ROOT);
 
     // the main menu loop.

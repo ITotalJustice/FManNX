@@ -18,62 +18,26 @@
 #include "image.h"
 #include "reboot_payload.h"
 
-#define MAX_FILES   10000
+#define MAX_FILES   10000   //10,000
 
 
-typedef struct node
-{
-    char file_name[BUFFER_MAX];
-    char ext[5];
-    u_int8_t dir;
-    u_int file_size;
-} node_t;
+// GLOBALS
+file_info_t *file_info[MAX_FILES];
+folder_info_t *folder_info = NULL;
 
-typedef struct folder_info
-{
-    uint16_t total;
-    uint16_t total_folders;
-    uint16_t total_files;
-
-    uint8_t total_payloads;
-    uint8_t total_txt;
-    uint8_t total_ini;
-
-    uint8_t total_nro;
-    uint8_t total_nsp;
-    uint8_t total_xci;
-
-    uint8_t total_mp3;
-    uint8_t total_ogg;
-    uint8_t total_wav;
-    uint8_t total_flac;
-
-    uint8_t total_zip;
-    uint8_t total_7zip;
-    uint8_t total_rar;
-
-    uint8_t total_png;
-    uint8_t total_jpg;
-    uint8_t total_bmp;
-
-    uint8_t total_mp4;
-    uint8_t total_mkv;
-} folder_info_t;
-
-node_t *files[MAX_FILES];
-folder_info_t *folder_info;
+static char pwd[BUFFER_MAX];
 
 static uint16_t cursor = 0;
 static uint8_t list_move = 0;
-static uint16_t number_of_files = 0;
-
-static char pwd[BUFFER_MAX];
 
 
 void free_nodes()
 {
-    for (uint16_t i = 0; i < number_of_files; i++)
-        free(files[i]);
+    for (int i = 0; i < folder_info->total; i++)
+    {
+        free(file_info[i]);
+        file_info[i] = NULL;
+    }
 
     if (folder_info != NULL)
     {
@@ -200,32 +164,32 @@ void print_dir()
     int x = 150;
     int shape_x = 100;
 
-    for (int i = 0, j = list_move, nl = 110; i < number_of_files && i < LIST_MAX; i++, j++, nl += 60)
+    for (uint16_t i = 0, j = list_move, nl = 110; i < folder_info->total && i < LIST_MAX; i++, j++, nl += 60)
     {
-        if (files[j]->dir == YES)
+        if (file_info[j]->dir == YES)
         {
             SDL_DrawShape(purple, shape_x, nl, 20, 20);
             folder_info->total_folders++;
         }
 
-        else draw_file_icon(files[j]->ext, shape_x, nl, 20, 20);
+        else draw_file_icon(file_info[j]->ext, shape_x, nl, 20, 20);
         
         if (j == cursor)
-            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", files[j]->file_name);
+            SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", file_info[j]->file_name);
         else
-            SDL_DrawText(fntSmall, x, nl, n_white, "%s", files[j]->file_name);
+            SDL_DrawText(fntSmall, x, nl, n_white, "%s", file_info[j]->file_name);
     }
 }
 
 void swap(int i, int j)
 {
-    // create a temporary node_t.
-    node_t *temp;
+    // create a temporary file_info_t.
+    file_info_t *temp;
 
     //swap...
-    temp = files[i];
-    files[i] = files[j];
-    files[j] = temp;
+    temp = file_info[i];
+    file_info[i] = file_info[j];
+    file_info[j] = temp;
 }
 
 void struct_sort(int left, int right)
@@ -239,11 +203,11 @@ void struct_sort(int left, int right)
     for (int i = left + 1; i <= right; i++)
     {
         // if right is a dir and the left side is not, swap.
-        if (files[left]->dir == NO && files[i]->dir == YES)
+        if (file_info[left]->dir == NO && file_info[i]->dir == YES)
             swap(++last, i);
 
         // swap if right side comes before left.
-        else if (strcasecmp(files[i]->file_name, files[left]->file_name) < 0)
+        else if (strcasecmp(file_info[i]->file_name, file_info[left]->file_name) < 0)
             swap(++last, i);
     }
 
@@ -262,38 +226,46 @@ void create_node(char *folder_location)
         folder_info = malloc(sizeof(folder_info_t));
 
         int n = 0;
-        char buffer[BUFFER_MAX];
-        if (strcmp(getcwd(buffer, sizeof(buffer)), ROOT))
+
+        if (strcmp(pwd, ROOT))
         {
-            files[n] = malloc(sizeof(node_t));
-            strcpy(files[n]->file_name, "..");
-            files[n]->dir = YES;
+            // malloc the size of the node.
+            file_info[n] = malloc(sizeof(file_info_t));
+
+            // used to go back to the previous dir.
+            strcpy(file_info[n]->file_name, "..");
+            file_info[n]->dir = YES;
 
             n++;
-            number_of_files++;
         }
-
-        folder_info->total = number_of_files;
 
         // store all the information of each file in the directory.
         for ( ; (de = readdir(dir)); n++)
         {
-            files[n] = malloc(sizeof(node_t));
+            file_info[n] = malloc(sizeof(file_info_t));
 
-            strcpy(files[n]->file_name, de->d_name);
+            strcpy(file_info[n]->file_name, de->d_name);
 
-            if (is_dir(de->d_name)) files[n]->dir = YES;
+            if (is_dir(de->d_name))
+                file_info[n]->dir = YES;
 
             else
             {
-                files[n]->dir = NO;
-                strcpy(files[n]->ext, get_filename_ext(de->d_name));
+                file_info[n]->dir = NO;
+                strcpy(file_info[n]->ext, get_filename_ext(de->d_name));
             }
         }
         closedir(dir);
 
-        if (number_of_files > 2)
-            struct_sort(0, number_of_files - 1);
+        // save the total number of files.
+        folder_info->total = n;
+
+        // sort if more than 1 file exists.
+        if (folder_info->total > 1)
+        {
+            printf("sorting array...\n\n");
+            struct_sort(0, folder_info->total - 1);
+        }
     }
 }
 
@@ -301,21 +273,23 @@ int enter_directory()
 {
     // concatenate 2 strings, with a '/' in the middle.
     char full_path[BUFFER_MAX + BUFFER_MAX];
-    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, files[cursor]->file_name);
+    snprintf(full_path, sizeof(full_path), "%s/%s", pwd, file_info[cursor]->file_name);
 
     // change directory to the new path.
     chdir(full_path);
+
+    // set new pwd.
+    memset(pwd, '\0', sizeof(pwd));
     getcwd(pwd, sizeof(pwd));
 
     // reset the values.
     cursor = 0;
     list_move = 0;
-    number_of_files = scan_dir(full_path);
 
     // freeeeeeeee...
     free_nodes();
 
-    // create new node_t with the size of number_of_files.
+    // create new file_info_t with the size of number_of_files.
     create_node(full_path);
 
     return 0;
@@ -323,7 +297,7 @@ int enter_directory()
 
 void move_back_dir()
 {
-    if (!strcmp(files[0]->file_name, ".."))
+    if (!strcmp(file_info[0]->file_name, ".."))
     {
         cursor = 0;
         enter_directory();
@@ -333,57 +307,50 @@ void move_back_dir()
 int file_select()
 {
     // if selected file is a dir, enter it.
-    if (files[cursor]->dir == YES)
+    if (file_info[cursor]->dir == YES)
         return enter_directory();
 
-    else if (!strcasecmp(files[cursor]->ext, PAYLOAD))
-        return reboot_payload(files[cursor]->file_name);
+    else if (!strcasecmp(file_info[cursor]->ext, PAYLOAD))
+        return reboot_payload(file_info[cursor]->file_name);
 
-    //else if (!strcasecmp(files[cursor]->ext, TXT_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, TXT_FILE))
 
-    //else if (!strcasecmp(files[cursor]->ext, INI_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, INI_FILE))
 
-    //else if (!strcasecmp(files[cursor]->ext, NRO_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, NRO_FILE))
 
-    //else if (!strcasecmp(files[cursor]->ext, NSP_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, NSP_FILE))
 
-    //else if (!strcasecmp(files[cursor]->ext, XCI_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, XCI_FILE))
     
-    else if (!strcasecmp(files[cursor]->ext, MP3_FILE))
-        return SDL_PlayMusic(files[cursor]->file_name);
+    else if (!strcasecmp(file_info[cursor]->ext, MP3_FILE))
+        return SDL_PlayMusic(file_info[cursor]->file_name);
 
-    else if (!strcasecmp(files[cursor]->ext, OGG_FILE))
-        return SDL_PlayMusic(files[cursor]->file_name);
+    else if (!strcasecmp(file_info[cursor]->ext, OGG_FILE))
+        return SDL_PlayMusic(file_info[cursor]->file_name);
 
-    //else if (!strcasecmp(files[cursor]->ext, WAV_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, WAV_FILE))
 
-    //else if (!strcasecmp(files[cursor]->ext, FLAC_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, FLAC_FILE))
 
-    else if (!strcasecmp(files[cursor]->ext, ZIP_FILE))
-        return unzip_menu(pwd, files[cursor]->file_name);
+    else if (!strcasecmp(file_info[cursor]->ext, ZIP_FILE))
+        return unzip_menu(pwd, file_info[cursor]->file_name);
 
-    //else if (!strcasecmp(files[cursor]->ext, SEVZIP_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, SEVZIP_FILE))
 
-    //else if (!strcasecmp(files[cursor]->ext, RAR_FILE))
+    //else if (!strcasecmp(file_info[cursor]->ext, RAR_FILE))
 
-    else if (!strcasecmp(files[cursor]->ext, PNG_FILE))
-        return image_menu(files[cursor]->file_name);
-
-    else if (!strcasecmp(files[cursor]->ext, JPG_FILE))
-        return image_menu(files[cursor]->file_name);
-
-    else if (!strcasecmp(files[cursor]->ext, BITMAP_FILE))
-        return image_menu(files[cursor]->file_name);
+    else if (!strcasecmp(file_info[cursor]->ext, PNG_FILE) || !strcasecmp(file_info[cursor]->ext, JPG_FILE) || !strcasecmp(file_info[cursor]->ext, BITMAP_FILE))
+        return image_menu(file_info[cursor]->file_name);
 
     return 0;
 }
 
 void directory_menu()
 {
-    number_of_files = scan_dir(ROOT);
-    create_node(ROOT);
-
     getcwd(pwd, sizeof(pwd));
+
+    create_node(pwd);
 
     while (appletMainLoop())
     {
@@ -396,15 +363,21 @@ void directory_menu()
         // scroll up...
         if (kDown & KEY_UP)
         {
-            cursor = move_cursor_up(cursor, number_of_files);
-            list_move = list_move_up(list_move, cursor, number_of_files, LIST_MAX);
+            cursor = move_cursor_up(cursor, folder_info->total);
+            list_move = list_move_up(list_move, cursor, folder_info->total, LIST_MAX);
+
+            printf("cursor = %d\n", cursor);
+            printf("list move = %d\n", list_move);
         }
 
         // scroll down...
         if (kDown & KEY_DOWN)
         {
-            cursor = move_cursor_down(cursor, number_of_files);
+            cursor = move_cursor_down(cursor, folder_info->total);
             list_move = list_move_down(list_move, cursor, LIST_MAX);
+
+            printf("cursor = %d\n", cursor);
+            printf("list move = %d\n", list_move);
         }
 
         if (kDown & KEY_A)

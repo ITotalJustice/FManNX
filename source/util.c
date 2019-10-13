@@ -8,29 +8,41 @@
 
 int move_cursor_up(int cursor, int cursor_max)
 {
-    if (cursor == 0) cursor = cursor_max - 1;
-    else cursor--;
+    if (cursor == 0)
+        cursor = cursor_max - 1;
+    else
+        cursor--;
+    
     return cursor;
 }
 
 int move_cursor_down(int cursor, int cursor_max)
 {
-    if (cursor == cursor_max - 1) cursor = 0;
-    else cursor++;
+    if (cursor == cursor_max - 1)
+        cursor = 0;
+    else
+        cursor++;
+
     return cursor;
 }
 
 int list_move_up(int list_move, int cursor, int number_of_files, int list_max)
 {
-    if (cursor == list_move - 1) list_move--;
-    else if (cursor == number_of_files - 1) list_move = cursor - (list_max - 1);
+    if (cursor == list_move - 1)
+        list_move--;
+    else if (cursor == number_of_files - 1 && list_max <= number_of_files)
+        list_move = cursor - (list_max - 1);
+
     return list_move;
 }
 
 int list_move_down(int list_move, int cursor, int list_max)
 {
-    if (cursor == (list_max - 1) + list_move + 1) list_move++;
-    else if (cursor == 0) list_move = 0;
+    if (cursor == (list_max - 1) + (list_move + 1))
+        list_move++;
+    else if (cursor == 0)
+        list_move = 0;
+
     return list_move;
 }
 
