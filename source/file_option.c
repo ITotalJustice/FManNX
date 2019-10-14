@@ -79,10 +79,13 @@ void select_option(int cursor, const char *pwd, const char *file)
             break;
 
         case RENAME:
-            //rename(file, "themes/");
+            printf("rename\n");
+            char buffer[256];
+            keyboard(buffer);
+            
+            rename(file, buffer);
             free_nodes();
             create_node(pwd);
-            //snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
             break;
     }
 }

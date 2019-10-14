@@ -68,4 +68,7 @@ void copy_folder(const char *src, char *dest);
 void move_file(const char *src, char *dest);
 void move_folder(const char *src, char *dest);
 
+//
+void keyboard(char *buffer);
+
 #endif

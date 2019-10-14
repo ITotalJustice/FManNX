@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <switch.h>
 
 #include "util.h"
 
@@ -311,4 +312,13 @@ void move_folder(const char *src, char *dest)
         free(full_path);
     }
     closedir(dir);
+}
+
+void keyboard(char *buffer)
+{
+    SwkbdConfig config;
+    swkbdConfigMakePresetDefault(&config);
+    swkbdCreate(&config, 0);
+    swkbdShow(&config, buffer, sizeof(buffer));
+    swkbdClose(&config);
 }
