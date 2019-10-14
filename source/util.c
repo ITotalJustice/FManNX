@@ -236,6 +236,7 @@ void copy_file(const char *src, char *dest)
         char *full_path;
         file_exists(&full_path, dest);
         newfile = fopen(full_path, "wb");
+        free(full_path);
     }
     else
         newfile = fopen(dest, "wb");

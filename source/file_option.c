@@ -68,7 +68,7 @@ void select_option(int cursor, const char *pwd, const char *file)
             break;
 
         case DELETE:
-            if (is_dir(file) == YES)
+            if (is_dir(file))
                 delete_dir(file);
 
             else
@@ -79,7 +79,10 @@ void select_option(int cursor, const char *pwd, const char *file)
             break;
 
         case RENAME:
-            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
+            //rename(file, "themes/");
+            free_nodes();
+            create_node(pwd);
+            //snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
             break;
     }
 }
@@ -106,7 +109,7 @@ int file_options_menu(const char *pwd, const char *file, ...)
 
         if (kDown & KEY_A)
         {
-            select_option(cursor, file, pwd);
+            select_option(cursor, pwd, file);
             break;
         }
 
