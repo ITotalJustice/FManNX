@@ -4,47 +4,49 @@
 #define LIST_MAX    9
 #define ROOT        "sdmc:/"
 
-#define BUFFER_MAX  512
+#define BUFFER_MAX      512
 
 
 typedef struct file_info
 {
     char file_name[BUFFER_MAX];
     char ext[5];
-    u_int8_t dir;
-    u_int file_size;
+    bool dir;
+    bool selected;
+    size_t file_size;
 
 } file_info_t;
 
 typedef struct folder_info
 {
-    uint16_t total;
-    uint16_t total_folders;
-    uint16_t total_files;
+    size_t total;
+    size_t total_folders;
+    size_t total_files;
+    size_t total_selected;
 
-    uint8_t total_payloads;
-    uint8_t total_txt;
-    uint8_t total_ini;
+    size_t total_payloads;
+    size_t total_txt;
+    size_t total_ini;
 
-    uint8_t total_nro;
-    uint8_t total_nsp;
-    uint8_t total_xci;
+    size_t total_nro;
+    size_t total_nsp;
+    size_t total_xci;
 
-    uint8_t total_mp3;
-    uint8_t total_ogg;
-    uint8_t total_wav;
-    uint8_t total_flac;
+    size_t total_mp3;
+    size_t total_ogg;
+    size_t total_wav;
+    size_t total_flac;
 
-    uint8_t total_zip;
-    uint8_t total_7zip;
-    uint8_t total_rar;
+    size_t total_zip;
+    size_t total_7zip;
+    size_t total_rar;
 
-    uint8_t total_png;
-    uint8_t total_jpg;
-    uint8_t total_bmp;
+    size_t total_png;
+    size_t total_jpg;
+    size_t total_bmp;
 
-    uint8_t total_mp4;
-    uint8_t total_mkv;
+    size_t total_mp4;
+    size_t total_mkv;
 
 } folder_info_t;
 

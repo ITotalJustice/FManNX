@@ -20,6 +20,9 @@
 
 #define MAX_FILES   10000   //10,000
 
+#define SORT_SMALL  0
+#define SORT_LARGE  1
+
 
 // GLOBALS
 file_info_t *file_info[MAX_FILES];
@@ -173,7 +176,10 @@ void print_dir()
         }
 
         else draw_file_icon(file_info[j]->ext, shape_x, nl, 20, 20);
-        
+
+        if (file_info[j]->selected == true)
+            SDL_DrawShape(red, shape_x, nl, 20, 20);
+
         if (j == cursor)
             SDL_DrawText(fntSmall, x, nl, n_cyan, "> %s", file_info[j]->file_name);
         else
@@ -192,7 +198,7 @@ void swap(int i, int j)
     file_info[j] = temp;
 }
 
-void struct_sort(int left, int right)
+void size_sort(int left, int right, int order)
 {
     if (left >= right)
         return;
@@ -202,18 +208,39 @@ void struct_sort(int left, int right)
 
     for (int i = left + 1; i <= right; i++)
     {
-        // if right is a dir and the left side is not, swap.
-        if (file_info[left]->dir == NO && file_info[i]->dir == YES)
+        // swap if right side comes before left.
+        if (order == SORT_SMALL && file_info[i]->file_size < file_info[left]->file_size)
             swap(++last, i);
 
-        // swap if right side comes before left.
+        else if (file_info[i]->file_size > file_info[left]->file_size)
+            swap(++last, i);
+    }
+
+    swap(left, last);
+    size_sort(left, last-1, order);
+    size_sort(last+1, right, order);
+}
+
+void alphabetical_sort(int left, int right)
+{
+    if (left >= right)
+        return;
+
+    swap(left, (left + right)/2);
+    int last = left;
+
+    for (int i = left + 1; i <= right; i++)
+    {
+        if (file_info[left]->dir == NO && file_info[i]->dir == YES)
+            swap(++last, i);
+        //else if (sort_num_string(file_info[i]->file_name, file_info[left]->file_name))
         else if (strcasecmp(file_info[i]->file_name, file_info[left]->file_name) < 0)
             swap(++last, i);
     }
 
     swap(left, last);
-    struct_sort(left, last-1);
-    struct_sort(last+1, right);
+    alphabetical_sort(left, last-1);
+    alphabetical_sort(last+1, right);
 }
 
 void create_node(const char *folder_location)
@@ -224,6 +251,7 @@ void create_node(const char *folder_location)
     if (dir)
     {
         folder_info = malloc(sizeof(folder_info_t));
+        folder_info->total_selected = 0;
 
         int n = 0;
 
@@ -235,7 +263,7 @@ void create_node(const char *folder_location)
             // used to go back to the previous dir.
             strcpy(file_info[n]->file_name, "..");
             file_info[n]->dir = YES;
-
+            file_info[n]->selected = false;
             n++;
         }
 
@@ -247,13 +275,18 @@ void create_node(const char *folder_location)
             strcpy(file_info[n]->file_name, de->d_name);
 
             if (is_dir(de->d_name))
-                file_info[n]->dir = YES;
-
+            {
+                file_info[n]->dir = true;
+                file_info[n]->file_size = 0;
+            }
             else
             {
-                file_info[n]->dir = NO;
+                file_info[n]->dir = false;
                 strcpy(file_info[n]->ext, get_filename_ext(de->d_name));
+                file_info[n]->file_size = get_filesize(de->d_name);
             }
+
+            file_info[n]->selected = false;
         }
         closedir(dir);
 
@@ -264,7 +297,8 @@ void create_node(const char *folder_location)
         if (folder_info->total > 1)
         {
             printf("sorting array...\n\n");
-            struct_sort(0, folder_info->total - 1);
+            alphabetical_sort(0, folder_info->total - 1);
+            //size_sort(0, folder_info->total - 1, SORT_LARGE);
         }
 
         // reset the values.
@@ -348,10 +382,28 @@ int file_select()
     return 0;
 }
 
+void clear_multi_select()
+{
+    for (uint16_t i = 0; folder_info->total_selected > 0; i++)
+        if (file_info[i]->selected)
+        {
+            file_info[i]->selected = false;
+            folder_info->total_selected--;
+        }
+}
+
+void select_all()
+{
+    for (uint16_t i = 0; i < folder_info->total; i++)
+    {
+        file_info[i]->selected = true;
+        folder_info->total_selected++;
+    }
+}
+
 void directory_menu()
 {
     getcwd(pwd, sizeof(pwd));
-
     create_node(pwd);
 
     while (appletMainLoop())
@@ -387,14 +439,34 @@ void directory_menu()
                 break;
 
         if (kDown & KEY_B)
-            move_back_dir();
+        {
+            if (folder_info->total_selected > 0)
+                clear_multi_select();
+            else
+                move_back_dir();
+        }
 
         // file option menu.
         if (kDown & KEY_X)
-            if (file_options_menu(file_info[cursor]->file_name, pwd) == APP_EXIT)
+            if (file_options_menu(pwd, file_info[cursor]->file_name) == APP_EXIT)
                 break;
 
-        // exit.
+        // multi-select
+        if (kDown & KEY_Y)
+        {
+            if (file_info[cursor]->selected)
+            {
+                folder_info->total_selected--;
+                file_info[cursor]->selected = false;
+            }
+            else
+            {
+                folder_info->total_selected++;
+                file_info[cursor]->selected = true;
+            }
+        }
+
+        // exit app.
         if (kDown & KEY_PLUS)
             break;
 

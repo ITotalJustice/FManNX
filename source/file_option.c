@@ -17,6 +17,9 @@
 // GLOBALS.
 static char file_temp[FILENAME_MAX];
 
+void store_strings()
+{
+}
 
 void print_file_options(int cursor)
 {
@@ -30,6 +33,7 @@ void print_file_options(int cursor)
         "rename"
     };
 
+
     SDL_DrawShape(n_grey, 350, 100, 250, 350);
 
     for (uint16_t i = 0, nl = 120; i < 6; i++, nl += 55)
@@ -41,7 +45,7 @@ void print_file_options(int cursor)
     }
 }
 
-void select_option(int cursor, const char *file, const char *pwd)
+void select_option(int cursor, const char *pwd, const char *file)
 {
     switch (cursor)
     {
@@ -49,14 +53,17 @@ void select_option(int cursor, const char *file, const char *pwd)
             break;
 
         case CUT:
+            memset(file_temp, '\0', sizeof(file_temp));
             snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
             break;
 
         case COPY:
+            memset(file_temp, '\0', sizeof(file_temp));
             snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
             break;
 
         case MOVE:
+            memset(file_temp, '\0', sizeof(file_temp));
             snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
             break;
 
@@ -77,15 +84,16 @@ void select_option(int cursor, const char *file, const char *pwd)
     }
 }
 
-int file_options_menu(const char *file, const char *pwd)
+int file_options_menu(const char *pwd, const char *file, ...)
 {
     uint8_t cursor = 0;
 
-    while(appletMainLoop())
+    while (appletMainLoop())
     {
         u64 kDown = hidKeysDown(CONTROLLER_P1_AUTO);
         hidScanInput();
 
+        // draw graphics
         draw_menu(pwd);
         print_dir();
         print_file_options(cursor);

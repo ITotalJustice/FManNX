@@ -5,13 +5,12 @@
 static Mix_Music *music = NULL;
 
 
-int SDL_PlayMusic(char *file)
+int SDL_PlayMusic(const char *file)
 {
     if (music != NULL)
     {
         Mix_HaltMusic();
         Mix_FreeMusic(music);
-        music = NULL;
     }
 
     music = Mix_LoadMUS(file);

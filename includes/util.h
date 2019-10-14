@@ -42,14 +42,19 @@ int list_move_down(int list_move, int cursor, int list_max);
 
 //
 const char *get_filename_ext(const char *filename);
+bool sort_num_string(const char *str1, const char *str2);
 
 //
-int is_dir(const char *folder_to_check);
-int check_if_dir_exists(const char *folder);
-int file_exists(char *newfile_buffer, const char *src);
+bool is_dir(const char *folder_to_check);
+bool check_if_dir_exists(const char *folder);
+void file_exists(char **full_path, const char *src);
 
 // scan entire dir, return number of files found.
-int scan_dir(char *directory);
+size_t scan_dir(const char *directory);
+size_t scan_dir_recursive(const char *directory);
+
+size_t get_filesize(const char *file);
+size_t get_foldersize(const char *folder);
 
 //
 void create_dir(const char *dir);

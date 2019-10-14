@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -54,43 +55,139 @@ const char *get_filename_ext(const char *filename)
     return dot + 1;
 }
 
-int is_dir(const char *folder_to_check)
+bool sort_num_string(const char *str1, const char *str2)
+{
+   for (int i = 0; str1[i] && str2[i]; i++)
+        if (str1[i] < str2[i])
+            return 1;
+    return 0;
+}
+
+bool is_dir(const char *folder_to_check)
 {
     DIR *dir = opendir(folder_to_check);
-    if (dir)
-    {
-        closedir(dir);
-        return YES;
-    }
-    
-    return NO;  
-}
-
-int check_if_dir_exists(const char *folder)
-{
-    DIR *dir = opendir(folder);
-    if (!dir) return NO;
+    if (!dir)
+        return false;
 
     closedir(dir);
-    return YES;
+    return true;
 }
 
-int file_exists(char *newfile_buffer, const char *src)
+bool check_if_dir_exists(const char *directory)
+{
+    DIR *dir = opendir(directory);
+    if (!dir)
+        return false;
+
+    closedir(dir);
+    return true;
+}
+
+void file_exists(char **full_path, const char *src)
 {
     for (u_int8_t i = 1; i < 256; i++)
     {
-        char buffer[520];
-        snprintf(buffer, sizeof(buffer), "%s%c%d%c", src, '(', i, ')');
+        char *buffer;
+        if (!asiprintf(&buffer, "%s%c%d%c", src, '(', i, ')'))
+            return;
 
-        FILE *fp = fopen(buffer, "r");
-        if (!fp)
+        FILE *f = fopen(buffer, "r");
+        if (!f)
         {
-            sprintf(newfile_buffer, buffer);
-            fclose(fp);
-            return 0;
+            fclose(f);
+            full_path = &buffer;
+            return;
         }
+        free(buffer);
     }
-    return 1;
+}
+
+size_t scan_dir(const char *directory)
+{
+    size_t number_of_files = 0;
+    DIR *dir = opendir(directory);
+    struct dirent *de;
+
+    if (!dir)
+        return number_of_files;
+
+    while ((de = readdir(dir)))
+    {
+        if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+            continue;
+        number_of_files++;
+    }
+
+    closedir(dir);
+    return number_of_files;
+}
+
+size_t scan_dir_recursive(const char *directory)
+{
+    size_t num = 0;
+    DIR *dir = opendir(directory);
+    struct dirent *de;
+
+    if (!dir)
+        return num;
+        
+    while ((de = readdir(dir)))
+    {
+        if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+            continue;
+
+        char *full_path;
+        if (!asiprintf(&full_path, "%s/%s", directory, de->d_name))
+            return num;
+
+        if (is_dir(de->d_name))
+            num += get_foldersize(de->d_name);
+
+        num++;
+        free(full_path);
+    }
+    closedir(dir);
+    return num;
+}
+
+size_t get_filesize(const char *file)
+{
+    size_t size = 0;
+    FILE *f = fopen(file, "r");
+    if (!f)
+        return size;
+
+    fseek(f, 0, SEEK_END);
+    size = ftell(f);
+    fclose(f);
+    return size;
+}
+
+size_t get_foldersize(const char *directory)
+{
+    size_t size = 0;
+    DIR *dir = opendir(directory);
+    struct dirent *de;
+    if (!dir)
+        return size;
+
+    while ((de = readdir(dir)))
+    {
+        if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+            continue;
+
+        char *full_path;
+        if (!asiprintf(&full_path, "%s/%s", directory, de->d_name))
+            return size;
+
+        if (is_dir(full_path))
+            size += get_foldersize(full_path);
+        else
+            size += get_filesize(full_path);
+
+        free(full_path);
+    }
+    return size;
 }
 
 void create_dir(const char *dir)
@@ -115,42 +212,15 @@ void delete_dir(const char *directory)
         if (!asiprintf(&full_path, "%s/%s", directory, de->d_name))
             return;
 
-        if (is_dir(full_path) == NO)
-        {
-            printf("removing %s\n", full_path);
-            remove(full_path);
-        }
-
-        else
-        {
-            printf("reeeecursion\n");
+        if (is_dir(full_path))
             delete_dir(full_path);
-        }
+        else
+            remove(full_path);
 
         free(full_path);
     }
-
     closedir(dir);
-
-    printf("removing dir\n");
     rmdir(directory);
-}
-
-int scan_dir(char *directory)
-{
-    int number_of_files = 0;
-
-    DIR *dir = opendir(directory);
-    struct dirent *de;
-
-    if (dir)
-    {
-        while ((de = readdir(dir)))
-            number_of_files++;
-        closedir(dir);
-    }
-
-    return number_of_files;
 }
 
 void copy_file(const char *src, char *dest)
@@ -159,16 +229,16 @@ void copy_file(const char *src, char *dest)
     FILE *newfile;
 
     // check if the file already exists
-    FILE *fp = fopen(dest, "r");
-    if (fp)
+    FILE *f = fopen(dest, "r");
+    if (f)
     {
-        fclose(fp);
-        char newfile_buffer[512];
-        if (!file_exists(newfile_buffer, dest))
-            newfile = fopen(newfile_buffer, "wb");
+        fclose(f);
+        char *full_path;
+        file_exists(&full_path, dest);
+        newfile = fopen(full_path, "wb");
     }
-
-    else newfile = fopen(dest, "wb");
+    else
+        newfile = fopen(dest, "wb");
 
     if (srcfile && newfile)
     {
@@ -186,7 +256,6 @@ void copy_folder(const char *src, char *dest)
 {
     DIR *dir = opendir(src);
     struct dirent *de;
-
     create_dir(dest);
 
     while ((de = readdir(dir)))
@@ -194,29 +263,29 @@ void copy_folder(const char *src, char *dest)
         char buffer[512];
         snprintf(buffer, sizeof(buffer), "%s/%s", dest, de->d_name);
 
-        // check if the file is a folder.
+        // check if the file is a directory.
         if (de->d_name[strlen(de->d_name)] == '/')
             create_dir(buffer);
         else
             copy_file(de->d_name, buffer);
     }
-    
     closedir(dir);
 }
 
 void move_file(const char *src, char *dest)
 {
     // check if the file already exists.
-    FILE *fp = fopen(src, "r");
-    if (fp)
+    FILE *f = fopen(dest, "r");
+    if (!f)
+        rename(src, dest);
+    else
     {
-        fclose(fp);
-        char newfile_buffer[512];
-        if (!file_exists(newfile_buffer, dest))
-            rename(src, newfile_buffer);
+        fclose(f);
+        char *full_path;
+        file_exists(&full_path, dest);
+        rename(src, full_path);
+        free(full_path);
     }
-
-    else rename(src, dest);
 }
 
 void move_folder(const char *src, char *dest)
@@ -228,15 +297,17 @@ void move_folder(const char *src, char *dest)
 
     while ((de = readdir(dir)))
     {
-        char buffer[512];
-        snprintf(buffer, sizeof(buffer), "%s/%s", dest, de->d_name);
+        char *full_path;
+        if (!asiprintf(&full_path, "%s/%s", src, de->d_name))
+            return;
 
-        // check if the file is a folder.
+        // check if the file is a directory.
         if (de->d_name[strlen(de->d_name)] == '/')
-            create_dir(buffer);
+            create_dir(full_path);
         else
-            move_file(de->d_name, buffer);
+            move_file(de->d_name, full_path);
+
+        free(full_path);
     }
-    
     closedir(dir);
 }
