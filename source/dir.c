@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
@@ -175,7 +176,11 @@ void print_dir()
             folder_info->total_folders++;
         }
 
-        else draw_file_icon(file_info[j]->ext, shape_x, nl, 20, 20);
+        else
+        {
+            draw_file_icon(file_info[j]->ext, shape_x, nl, 20, 20);
+            SDL_DrawText(fntSmall, 1000, nl, n_silver, "%.2fMB", file_info[j]->file_size);
+        }
 
         if (file_info[j]->selected == true)
             SDL_DrawShape(red, shape_x, nl, 20, 20);

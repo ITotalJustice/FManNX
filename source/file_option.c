@@ -5,17 +5,25 @@
 #include "util.h"
 #include "gfx_util.h"
 
-#define OPTION_LIST_MAX 6
+#define OPTION_LIST_MAX 7
 
-#define EDIT    0
-#define CUT     1
-#define COPY    2
-#define MOVE    3
-#define DELETE  4
-#define RENAME  5
+#define EDIT        0
+#define COPY        1
+#define PASTE       2
+#define MOVE        3
+#define MOVE_HERE   4
+#define DELETE      5
+#define RENAME      6
 
 // GLOBALS.
-static char file_temp[FILENAME_MAX];
+static char file_location[FILENAME_MAX];
+static char file_name[BUFFER_MAX];
+
+void clear_buffers()
+{
+    memset(file_location, '\0', sizeof(file_location));
+    memset(file_name, '\0', sizeof(file_name));
+}
 
 void store_strings()
 {
@@ -26,17 +34,18 @@ void print_file_options(int cursor)
     char *options[OPTION_LIST_MAX] = 
     {
         "edit",
-        "cut",
         "copy",
+        "paste",
         "move",
+        "move here",
         "delete",
         "rename"
     };
 
 
-    SDL_DrawShape(n_grey, 350, 100, 250, 350);
+    SDL_DrawShape(n_grey, 350, 100, 250, 400);
 
-    for (uint16_t i = 0, nl = 120; i < 6; i++, nl += 55)
+    for (uint16_t i = 0, nl = 120; i < OPTION_LIST_MAX; i++, nl += 55)
     {
         if (cursor == i)
             SDL_DrawText(fntSmall, 375, nl, grey, options[i]);
@@ -52,28 +61,44 @@ void select_option(int cursor, const char *pwd, const char *file)
         case EDIT:
             break;
 
-        case CUT:
-            memset(file_temp, '\0', sizeof(file_temp));
-            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
+        case COPY:
+            clear_buffers();
+            strcpy(file_name, file);
+            snprintf(file_location, sizeof(file_location), "%s/%s", pwd, file);
             break;
 
-        case COPY:
-            memset(file_temp, '\0', sizeof(file_temp));
-            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
+        case PASTE:
+            if (is_dir(file_location))
+                copy_folder(file_location, file_name);
+            else
+                copy_file(file_location, file_name);
+            clear_buffers();
+            free_nodes();
+            create_node(pwd);
             break;
 
         case MOVE:
-            memset(file_temp, '\0', sizeof(file_temp));
-            snprintf(file_temp, sizeof(file_temp), "%s/%s", pwd, file);
+            clear_buffers();
+            strcpy(file_name, file);
+            snprintf(file_location, sizeof(file_location), "%s/%s", pwd, file);
+            break;
+
+        case MOVE_HERE:
+            if (is_dir(file_location))
+                move_file(file_location, file_name);
+            else
+                move_folder(file_location, file_name);
+            clear_buffers();
+            free_nodes();
+            create_node(pwd);
             break;
 
         case DELETE:
             if (is_dir(file))
                 delete_dir(file);
-
             else
                 remove(file);
-
+            clear_buffers();
             free_nodes();
             create_node(pwd);
             break;
@@ -84,6 +109,7 @@ void select_option(int cursor, const char *pwd, const char *file)
             keyboard(buffer);
             
             rename(file, buffer);
+            clear_buffers();
             free_nodes();
             create_node(pwd);
             break;

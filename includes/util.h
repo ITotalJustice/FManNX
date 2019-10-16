@@ -53,7 +53,7 @@ void file_exists(char **full_path, const char *src);
 size_t scan_dir(const char *directory);
 size_t scan_dir_recursive(const char *directory);
 
-size_t get_filesize(const char *file);
+double get_filesize(const char *file);
 size_t get_foldersize(const char *folder);
 
 //

@@ -5,7 +5,7 @@
 #define ROOT        "sdmc:/"
 
 #define BUFFER_MAX      512
-
+#define Megabytes_in_Bytes	1048576
 
 typedef struct file_info
 {
@@ -13,7 +13,7 @@ typedef struct file_info
     char ext[5];
     bool dir;
     bool selected;
-    size_t file_size;
+    double file_size;
 
 } file_info_t;
 

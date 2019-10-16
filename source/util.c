@@ -52,7 +52,8 @@ int list_move_down(int list_move, int cursor, int list_max)
 const char *get_filename_ext(const char *filename)
 {
     const char *dot = strrchr(filename, '.');
-    if (!dot || dot == filename) return "";
+    if (!dot || dot == filename)
+        return "";
     return dot + 1;
 }
 
@@ -151,16 +152,19 @@ size_t scan_dir_recursive(const char *directory)
     return num;
 }
 
-size_t get_filesize(const char *file)
+double get_filesize(const char *file)
 {
-    size_t size = 0;
+    double size = 0;
     FILE *f = fopen(file, "r");
     if (!f)
         return size;
 
     fseek(f, 0, SEEK_END);
     size = ftell(f);
+    size /= 1048576;
     fclose(f);
+    if (size < 0.009)
+        size = 0.01;
     return size;
 }
 
@@ -227,10 +231,10 @@ void delete_dir(const char *directory)
 void copy_file(const char *src, char *dest)
 {
     FILE *srcfile = fopen(src, "rb");
-    FILE *newfile;
+    FILE *newfile = fopen(dest, "wb");
 
     // check if the file already exists
-    FILE *f = fopen(dest, "r");
+    /*FILE *f = fopen(dest, "r");
     if (f)
     {
         fclose(f);
@@ -240,15 +244,15 @@ void copy_file(const char *src, char *dest)
         free(full_path);
     }
     else
-        newfile = fopen(dest, "wb");
+        newfile = fopen(dest, "wb");*/
 
     if (srcfile && newfile)
     {
-        char buffer[10000]; // 10kb per write, which is fast
-        size_t bytes;       // size of the file to write (10kb or filesize max)
+        char buffer[1000000];   // 1B per write, which is fast
+        size_t bytes;           // size of the file to write (10kb or filesize max)
 
         while (0 < (bytes = fread(buffer, 1, sizeof(buffer), srcfile)))
-            fwrite(buffer, 1, bytes, newfile);
+            fwrite(buffer, bytes, 1, newfile);
     }
     fclose(srcfile);
     fclose(newfile);
@@ -266,7 +270,7 @@ void copy_folder(const char *src, char *dest)
         snprintf(buffer, sizeof(buffer), "%s/%s", dest, de->d_name);
 
         // check if the file is a directory.
-        if (de->d_name[strlen(de->d_name)] == '/')
+        if (is_dir(de->d_name))
             create_dir(buffer);
         else
             copy_file(de->d_name, buffer);
@@ -276,7 +280,8 @@ void copy_folder(const char *src, char *dest)
 
 void move_file(const char *src, char *dest)
 {
-    // check if the file already exists.
+    rename(src, dest);
+    /*// check if the file already exists.
     FILE *f = fopen(dest, "r");
     if (!f)
         rename(src, dest);
@@ -287,14 +292,13 @@ void move_file(const char *src, char *dest)
         file_exists(&full_path, dest);
         rename(src, full_path);
         free(full_path);
-    }
+    }*/
 }
 
 void move_folder(const char *src, char *dest)
 {
     DIR *dir = opendir(src);
     struct dirent *de;
-
     create_dir(dest);
 
     while ((de = readdir(dir)))
@@ -304,7 +308,7 @@ void move_folder(const char *src, char *dest)
             return;
 
         // check if the file is a directory.
-        if (de->d_name[strlen(de->d_name)] == '/')
+        if (is_dir(de->d_name))
             create_dir(full_path);
         else
             move_file(de->d_name, full_path);
