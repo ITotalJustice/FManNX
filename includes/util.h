@@ -1,7 +1,6 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-
 #define APP_EXIT    1
 
 #define NO          0
@@ -12,11 +11,13 @@
 #define INI_FILE    "ini"
 
 #define NRO_FILE    "nro"
+#define NCA_FILE    "nca"
 #define NSP_FILE    "nsp"
 #define XCI_FILE    "xci"
 
 #define MP3_FILE    "mp3"
 #define OGG_FILE    "ogg"
+#define OPUS_FILE   "opus"
 #define WAV_FILE    "wav"
 #define FLAC_FILE   "flac"
 
@@ -31,6 +32,9 @@
 #define MP4_FILE    "mp4"
 #define MKV_FILE    "mkv"
 
+#define PDF_FILE    "pdf"
+#define EPUB_FILE   "epub"
+#define MOBI_FILE   "mobi"
 
 //
 int move_cursor_up(int cursor, int cursor_max);

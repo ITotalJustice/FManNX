@@ -85,9 +85,9 @@ void select_option(int cursor, const char *pwd, const char *file)
 
         case MOVE_HERE:
             if (is_dir(file_location))
-                move_file(file_location, file_name);
-            else
                 move_folder(file_location, file_name);
+            else
+                move_file(file_location, file_name);
             clear_buffers();
             free_nodes();
             create_node(pwd);

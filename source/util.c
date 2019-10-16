@@ -323,6 +323,6 @@ void keyboard(char *buffer)
     SwkbdConfig config;
     swkbdConfigMakePresetDefault(&config);
     swkbdCreate(&config, 0);
-    swkbdShow(&config, buffer, sizeof(buffer));
+    swkbdShow(&config, buffer, 256);
     swkbdClose(&config);
 }

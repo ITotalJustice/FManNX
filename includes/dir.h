@@ -14,6 +14,7 @@ typedef struct file_info
     bool dir;
     bool selected;
     double file_size;
+    u8 ext_colour;
 
 } file_info_t;
 
@@ -29,11 +30,13 @@ typedef struct folder_info
     size_t total_ini;
 
     size_t total_nro;
+    size_t total_nca;
     size_t total_nsp;
     size_t total_xci;
 
     size_t total_mp3;
     size_t total_ogg;
+    size_t total_opus;
     size_t total_wav;
     size_t total_flac;
 
@@ -47,6 +50,10 @@ typedef struct folder_info
 
     size_t total_mp4;
     size_t total_mkv;
+
+    size_t total_pdf;
+    size_t total_epub;
+    size_t total_mobi;
 
 } folder_info_t;
 

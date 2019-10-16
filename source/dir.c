@@ -50,117 +50,151 @@ void free_nodes()
     }
 }
 
-void draw_file_icon(char *file, int x, int y, int w, int h)
+void reset_values()
 {
-    if (!strcasecmp(file, PAYLOAD))
-    {
-        folder_info->total_payloads++;
-        SDL_DrawShape(brown, x, y, w, h);
-    }
+    folder_info->total = 0;
+    folder_info->total_files = 0;
+    folder_info->total_folders = 0;
+    folder_info->total_flac = 0;
+    folder_info->total_ini = 0;
+    folder_info->total_jpg = 0;
+    folder_info->total_mkv = 0;
+    folder_info->total_mp3 = 0;
+    folder_info->total_mp4 = 0;
+    folder_info->total_nro = 0;
+    folder_info->total_nca = 0;
+    folder_info->total_nsp = 0;
+    folder_info->total_xci = 0;
+    folder_info->total_ogg = 0;
+    folder_info->total_payloads = 0;
+    folder_info->total_png = 0;
+    folder_info->total_rar = 0;
+    folder_info->total_txt = 0;
+    folder_info->total_wav = 0;
+    folder_info->total_zip = 0;
+    folder_info->total_7zip = 0;
+    folder_info->total_bmp = 0;
+    folder_info->total_selected = 0;
+}
 
-    else if (!strcasecmp(file, TXT_FILE))
+void set_file_ext_colour(size_t file_in_array)
+{
+    if (!strcasecmp(file_info[file_in_array]->ext, PAYLOAD))
     {
-        folder_info->total_txt++;
-        SDL_DrawShape(green, x, y, w, h);
+		folder_info->total_payloads++;
+        file_info[file_in_array]->ext_colour = brown;
     }
-
-    else if (!strcasecmp(file, INI_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, TXT_FILE))
     {
-        folder_info->total_ini++;
-        SDL_DrawShape(orange, x, y, w, h);
+		folder_info->total_txt++;
+        file_info[file_in_array]->ext_colour = green;
     }
-
-    else if (!strcasecmp(file, NRO_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, INI_FILE))
     {
-        folder_info->total_nro++;
-        SDL_DrawShape(yellow, x, y, w, h);
+		folder_info->total_ini++;
+        file_info[file_in_array]->ext_colour = orange;
     }
-
-    else if (!strcasecmp(file, NSP_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, NRO_FILE))
     {
-        folder_info->total_nsp++;
-        SDL_DrawShape(pink, x, y, w, h);
+		folder_info->total_nro++;
+        file_info[file_in_array]->ext_colour = yellow;
     }
-
-    else if (!strcasecmp(file, XCI_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, NCA_FILE))
     {
-        folder_info->total_xci++;
-        SDL_DrawShape(red, x, y, w, h);
+		folder_info->total_nca++;
+        file_info[file_in_array]->ext_colour = pink;
     }
-
-    else if (!strcasecmp(file, MP3_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, NSP_FILE))
     {
-        folder_info->total_mp3++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_nsp++;
+        file_info[file_in_array]->ext_colour = pink;
     }
-
-    else if (!strcasecmp(file, OGG_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, XCI_FILE))
     {
-        folder_info->total_ogg++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_xci++;
+        file_info[file_in_array]->ext_colour = red;
     }
-
-    else if (!strcasecmp(file, WAV_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, MP3_FILE))
     {
-        folder_info->total_wav++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_mp3++;
+        file_info[file_in_array]->ext_colour = indigo;
     }
-
-    else if (!strcasecmp(file, FLAC_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, OGG_FILE))
     {
-        folder_info->total_flac++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_ogg++;
+        file_info[file_in_array]->ext_colour = indigo;
     }
-
-    else if (!strcasecmp(file, ZIP_FILE))
+	else if (!strcasecmp(file_info[file_in_array]->ext, OPUS_FILE))
+	{
+        folder_info->total_opus++;
+        file_info[file_in_array]->ext_colour = indigo;
+	}
+    else if (!strcasecmp(file_info[file_in_array]->ext, WAV_FILE))
     {
-        folder_info->total_zip++;
-        SDL_DrawShape(red, x, y, w, h);
+		folder_info->total_wav++;
+        file_info[file_in_array]->ext_colour = indigo;
     }
-
-    else if (!strcasecmp(file, SEVZIP_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, FLAC_FILE))
     {
-        folder_info->total_7zip++;
-        SDL_DrawShape(red, x, y, w, h);
+		folder_info->total_flac++;
+        file_info[file_in_array]->ext_colour = indigo;
     }
-
-    else if (!strcasecmp(file, RAR_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, ZIP_FILE))
     {
-        folder_info->total_rar++;
-        SDL_DrawShape(red, x, y, w, h);
+		folder_info->total_zip++;
+        file_info[file_in_array]->ext_colour = red;
     }
-
-    else if (!strcasecmp(file, PNG_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, SEVZIP_FILE))
     {
-        folder_info->total_png++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_7zip++;
+        file_info[file_in_array]->ext_colour = red;
     }
-
-    else if (!strcasecmp(file, JPG_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, RAR_FILE))
     {
-        folder_info->total_jpg++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_rar++;
+        file_info[file_in_array]->ext_colour = red;
     }
-
-    else if (!strcasecmp(file, BITMAP_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, PNG_FILE))
     {
-        folder_info->total_bmp++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_png++;
+        file_info[file_in_array]->ext_colour = indigo;
     }
-
-    else if (!strcasecmp(file, MP4_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, JPG_FILE))
     {
-        folder_info->total_mp4++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_jpg++;
+        file_info[file_in_array]->ext_colour = indigo;
     }
-
-    else if (!strcasecmp(file, MKV_FILE))
+    else if (!strcasecmp(file_info[file_in_array]->ext, BITMAP_FILE))
     {
-        folder_info->total_mkv++;
-        SDL_DrawShape(indigo, x, y, w, h);
+		folder_info->total_bmp++;
+        file_info[file_in_array]->ext_colour = indigo;
     }
-
-    else SDL_DrawShape(n_white, x, y, w, h); 
+    else if (!strcasecmp(file_info[file_in_array]->ext, MP4_FILE))
+    {
+		folder_info->total_mp4++;
+        file_info[file_in_array]->ext_colour = indigo;
+    }
+    else if (!strcasecmp(file_info[file_in_array]->ext, MKV_FILE))
+    {
+		folder_info->total_mkv++;
+        file_info[file_in_array]->ext_colour = indigo;
+    }
+	else if (!strcasecmp(file_info[file_in_array]->ext, PDF_FILE))
+    {
+        folder_info->total_pdf++;
+        file_info[file_in_array]->ext_colour = blue;
+    }
+    else if (!strcasecmp(file_info[file_in_array]->ext, EPUB_FILE))
+    {
+        folder_info->total_epub++;
+        file_info[file_in_array]->ext_colour = blue;
+    }
+    else if (!strcasecmp(file_info[file_in_array]->ext, MOBI_FILE))
+    {
+        folder_info->total_mobi++;
+        file_info[file_in_array]->ext_colour = blue;
+    }
+    else file_info[file_in_array]->ext_colour = n_white;
 }
 
 void print_dir()
@@ -168,17 +202,13 @@ void print_dir()
     int x = 150;
     int shape_x = 100;
 
-    for (uint16_t i = 0, j = list_move, nl = 110; i < folder_info->total && i < LIST_MAX; i++, j++, nl += 60)
+    for (size_t i = 0, j = list_move, nl = 110; i < folder_info->total && i < LIST_MAX; i++, j++, nl += 60)
     {
         if (file_info[j]->dir == YES)
-        {
-            SDL_DrawShape(purple, shape_x, nl, 20, 20);
-            folder_info->total_folders++;
-        }
-
+            SDL_DrawShape(file_info[j]->ext_colour, shape_x, nl, 20, 20);
         else
         {
-            draw_file_icon(file_info[j]->ext, shape_x, nl, 20, 20);
+            SDL_DrawShape(file_info[j]->ext_colour, shape_x, nl, 20, 20);
             SDL_DrawText(fntSmall, 1000, nl, n_silver, "%.2fMB", file_info[j]->file_size);
         }
 
@@ -190,6 +220,7 @@ void print_dir()
         else
             SDL_DrawText(fntSmall, x, nl, n_white, "%s", file_info[j]->file_name);
     }
+    SDL_DrawText(fntSmall, 25, 680, n_silver, "files: %ld    folders: %ld    selected: %ld    nca: %ld    nsp: %ld    xci: %ld    nro: %ld    mp3: %ld", folder_info->total_files, folder_info->total_folders, folder_info->total_selected, folder_info->total_nca, folder_info->total_nsp, folder_info->total_xci, folder_info->total_nro, folder_info->total_mp3);
 }
 
 void swap(int i, int j)
@@ -256,9 +287,9 @@ void create_node(const char *folder_location)
     if (dir)
     {
         folder_info = malloc(sizeof(folder_info_t));
-        folder_info->total_selected = 0;
+        reset_values();
 
-        int n = 0;
+        size_t n = 0;
 
         if (strcmp(pwd, ROOT))
         {
@@ -268,6 +299,7 @@ void create_node(const char *folder_location)
             // used to go back to the previous dir.
             strcpy(file_info[n]->file_name, "..");
             file_info[n]->dir = YES;
+            file_info[n]->ext_colour = purple;
             file_info[n]->selected = false;
             n++;
         }
@@ -278,20 +310,23 @@ void create_node(const char *folder_location)
             file_info[n] = malloc(sizeof(file_info_t));
 
             strcpy(file_info[n]->file_name, de->d_name);
+            file_info[n]->selected = false;
 
             if (is_dir(de->d_name))
             {
+                folder_info->total_folders++;
                 file_info[n]->dir = true;
+                file_info[n]->ext_colour = purple;
                 file_info[n]->file_size = 0;
             }
             else
             {
+                folder_info->total_files++;
                 file_info[n]->dir = false;
                 strcpy(file_info[n]->ext, get_filename_ext(de->d_name));
+                set_file_ext_colour(n);
                 file_info[n]->file_size = get_filesize(de->d_name);
             }
-
-            file_info[n]->selected = false;
         }
         closedir(dir);
 
@@ -389,7 +424,7 @@ int file_select()
 
 void clear_multi_select()
 {
-    for (uint16_t i = 0; folder_info->total_selected > 0; i++)
+    for (size_t i = 0; folder_info->total_selected > 0; i++)
         if (file_info[i]->selected)
         {
             file_info[i]->selected = false;
@@ -399,7 +434,7 @@ void clear_multi_select()
 
 void select_all()
 {
-    for (uint16_t i = 0; i < folder_info->total; i++)
+    for (size_t i = 0; i < folder_info->total; i++)
     {
         file_info[i]->selected = true;
         folder_info->total_selected++;
